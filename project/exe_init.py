@@ -1,8 +1,8 @@
-from config_path import DATA_PATH
+from config_path import *
 from pathlib import Path
 import pandas as pd
-from project.f1_get_sources import get_sources
-from project.p0_sise_content import vars_compare, zip_content
+from f1_get_sources import get_sources
+from p0_sise_content import vars_compare, zip_content
 
 
 # liste des datasets du zip parquet, extraction de la dernière années des données dispo

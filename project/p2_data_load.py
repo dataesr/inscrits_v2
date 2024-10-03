@@ -3,7 +3,7 @@ def data_load(filename, source, rentree, last_data_year):
     import pandas as pd
     from pyarrow.parquet import ParquetFile
     from config_path import DATA_PATH
-    from project.utils import vars_list
+    from utils import vars_list
 
     with zipfile.ZipFile(f"{DATA_PATH}input/parquet_origine.zip", 'r') as z:
         df = pd.read_parquet(z.open(f'parquet_origine/{filename}.parquet'), engine='pyarrow')
