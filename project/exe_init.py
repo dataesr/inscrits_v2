@@ -1,5 +1,5 @@
 from config_path import *
-from pathlib import Path
+import os
 import pandas as pd
 from f1_get_sources import get_sources
 from p0_sise_content import vars_compare, zip_content
@@ -8,8 +8,8 @@ from p0_sise_content import vars_compare, zip_content
 # liste des datasets du zip parquet, extraction de la dernière années des données dispo
 dataset_list, last_data_year = zip_content()
 
-file_path=Path(f"{DATA_PATH}data_review_{last_data_year}.xlsx")
-if not file_path.exists():
+file_path=os.path.join(DATA_PATH, f"data_review_{last_data_year}.xlsx")
+if not os.path.exists(file_path):
     with pd.ExcelWriter(file_path, mode='w', engine='openpyxl' ) as writer:  
         dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)
 else:
@@ -31,5 +31,4 @@ for rentree in ALL_RENTREES:
         vars_review = pd.concat([vars_review, df], ignore_index=True)
 
 with pd.ExcelWriter(file_path, mode='a', if_sheet_exists="replace") as writer:  
-        vars_review.to_excel(writer, sheet_name='l2_vars_source_year', index=False)
-    
+    vars_review.to_excel(writer, sheet_name='l2_vars_source_year', index=False)
