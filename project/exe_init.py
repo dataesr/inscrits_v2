@@ -8,12 +8,12 @@ from p0_sise_content import vars_compare, zip_content
 # liste des datasets du zip parquet, extraction de la dernière années des données dispo
 dataset_list, last_data_year = zip_content()
 
-file_path=os.path.join(DATA_PATH, f"data_review_{last_data_year}.xlsx")
-if not os.path.exists(file_path):
-    with pd.ExcelWriter(file_path, mode='w', engine='openpyxl' ) as writer:  
+excel_path=os.path.join(DATA_PATH, f"data_review_{last_data_year}.xlsx")
+if not os.path.exists(excel_path):
+    with pd.ExcelWriter(excel_path, mode='w', engine='openpyxl' ) as writer:  
         dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)
 else:
-    with pd.ExcelWriter(file_path, mode="a", if_sheet_exists="replace", engine='openpyxl' ) as writer:  
+    with pd.ExcelWriter(excel_path, mode="a", if_sheet_exists="replace", engine='openpyxl' ) as writer:  
         dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)
 
 # etat des variables par année source
@@ -30,5 +30,5 @@ for rentree in ALL_RENTREES:
 
         vars_review = pd.concat([vars_review, df], ignore_index=True)
 
-with pd.ExcelWriter(file_path, mode='a', if_sheet_exists="replace") as writer:  
+with pd.ExcelWriter(excel_path, mode='a', if_sheet_exists="replace") as writer:  
     vars_review.to_excel(writer, sheet_name='l2_vars_source_year', index=False)
