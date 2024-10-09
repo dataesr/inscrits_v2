@@ -1,14 +1,13 @@
 from config_path import *
 import os
 import pandas as pd
-from f1_get_sources import get_sources
-from p0_sise_content import vars_compare, zip_content
+from P0_sise_content import get_sources, vars_compare, zip_content, data_review_excel
 
 
 # liste des datasets du zip parquet, extraction de la dernière années des données dispo
 dataset_list, last_data_year = zip_content()
 
-excel_path=os.path.join(DATA_PATH, f"data_review_{last_data_year}.xlsx")
+excel_path=data_review_excel()
 if not os.path.exists(excel_path):
     with pd.ExcelWriter(excel_path, mode='w', engine='openpyxl' ) as writer:  
         dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)

@@ -3,7 +3,7 @@ import zipfile
 import pandas as pd
 from config_path import DATA_PATH
 from utils import vars_list
-from exe_init import excel_path
+from P0_sise_content import zip_content, data_review_excel
 
 def data_load(filename, source, rentree):
     with zipfile.ZipFile(f"{DATA_PATH}input/parquet_origine.zip", 'r') as z:
@@ -13,7 +13,7 @@ def data_load(filename, source, rentree):
     df_vars.columns = df_vars.columns.str.lower()
     df_vars = df_vars.assign(rentree=rentree, source=source)
 
-    with pd.ExcelWriter(excel_path, mode='a', if_sheet_exists="replace") as writer:  
+    with pd.ExcelWriter(data_review_excel(), mode='a', if_sheet_exists="replace") as writer:  
         pd.DataFrame({"name": df_vars.columns, "non-nulls": len(df_vars)-df_vars.isnull().sum().values, "nulls": df_vars.isnull().sum().values}).to_excel(writer, sheet_name=filename, index=False)
     
     return df_vars
