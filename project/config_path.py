@@ -1,1 +1,0 @@
-DATA_PATH="C:/Users/zfriant/Documents/OneDrive/Inscrits/"

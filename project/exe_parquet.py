@@ -1,4 +1,4 @@
-from config_path import DATA_PATH
+from config_path import *
 import pandas as pd
 from project.P1_data_parquet import data_load, data_save
 from P0_sise_content import get_sources, zip_content

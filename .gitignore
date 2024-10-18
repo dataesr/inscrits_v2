@@ -1,4 +1,4 @@
-./project/config_path.py
+config_path.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

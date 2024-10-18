@@ -1,9 +1,9 @@
 import os
 import zipfile
 import pandas as pd
-from config_path import DATA_PATH
+from config_path import *
 from utils import vars_list
-from P0_sise_content import zip_content, data_review_excel
+from P0_sise_content import data_review_excel
 
 def data_load(filename, source, rentree):
     with zipfile.ZipFile(f"{DATA_PATH}input/parquet_origine.zip", 'r') as z:
