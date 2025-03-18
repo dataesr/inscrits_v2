@@ -6,7 +6,7 @@ from utils import vars_list
 from P0_sise_content import data_review_excel
 
 def data_load(filename, source, rentree):
-    with zipfile.ZipFile(f"{DATA_PATH}input/parquet_origine.zip", 'r') as z:
+    with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
         df = pd.read_parquet(z.open(f'parquet_origine/{filename}.parquet'), engine='pyarrow')
 
     df_vars = df[df.columns[df.columns.isin(vars_list)]]
@@ -21,16 +21,16 @@ def data_load(filename, source, rentree):
 
 def data_save(rentree, df_all, last_data_year):
 
-    if not os.path.exists(f'{DATA_PATH}/output'):
+    if not os.path.exists(f'{PATH}/output'):
         print("folder OUTPUT creates into DATA_PATH")
     # Create a new directory because it does not exist
-        os.mkdir(f'{DATA_PATH}/output')
+        os.mkdir(f'{PATH}/output')
         
     parquet_name = f'sise{str(rentree)[2:4]}.parquet'
     df_all.to_parquet(parquet_name, compression='gzip')
 
     print(f"Creating the parquet-files by year {parquet_name} into zip in OUTPUT")
-    zip_path = os.path.join(DATA_PATH, f"output/parquet_basic_{last_data_year}.zip")
+    zip_path = os.path.join(PATH, f"output/parquet_basic_{last_data_year}.zip")
     with zipfile.ZipFile(zip_path, 'a') as z:
         z.write(parquet_name)
         
