@@ -17,6 +17,7 @@ else:
     with pd.ExcelWriter(excel_path, mode="a", if_sheet_exists="replace", engine='openpyxl' ) as writer:  
         dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)
 
+#######################################
 # etat des variables par année source
 vars_review = pd.DataFrame(columns=['variable', 'ex', 'source', 'rentree'])
 df_items = pd.DataFrame()
