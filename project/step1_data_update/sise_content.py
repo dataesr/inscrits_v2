@@ -1,4 +1,4 @@
-from config_path import PATH
+
 import pandas as pd, zipfile, os
 import pyarrow as pa
 from pyarrow.parquet import ParquetFile
@@ -21,13 +21,15 @@ def get_sources(annee):
 
 
 def  zip_content():
+    from config_path import PATH
     with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
         z_content=pd.Series(filter(None, [i.split('.')[0].split('/')[1] for i in z.namelist()]), name='dataset_name')
         last_data_year = f'20{z_content.iloc[-1][-2:]}'
     return [z_content, last_data_year]
 
 
-def vars_compare(filename, source, rentree):    
+def vars_compare(filename, source, rentree):
+    from config_path import PATH  
     with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
         pf = ParquetFile(z.open(f'parquet_origine/{filename}.parquet')) 
         first_one_row = next(pf.iter_batches(batch_size = 1)) 
@@ -41,10 +43,12 @@ def vars_compare(filename, source, rentree):
     return df.drop(columns=slist_to_delete).T.reset_index().assign(source=source, rentree=rentree).rename(columns={0:'ex', 'index':'variable'})
 
 def data_review_excel():
+    from config_path import PATH
     last_data_year = zip_content()[1]
     return os.path.join(PATH, f"data_review_{last_data_year}.xlsx")
 
 def data_load(filename, source, rentree):
+    from config_path import PATH
     from utils import vars_list
     with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
         df = pd.read_parquet(z.open(f'parquet_origine/{filename}.parquet'), engine='pyarrow')
@@ -61,7 +65,7 @@ def data_load(filename, source, rentree):
     return df_vars
 
 def data_save(rentree, df_all, last_data_year):
-
+    from config_path import PATH
     if not os.path.exists(f'{PATH}/output'):
         print("folder OUTPUT creates into DATA_PATH")
     # Create a new directory because it does not exist

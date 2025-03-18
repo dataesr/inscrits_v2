@@ -1,6 +1,6 @@
 from config_path import *
 import pandas as pd
-from project.P1_data_parquet import data_load, data_save
+from project.step1_data_update.P1_data_parquet import data_load, data_save
 from P0_sise_content import get_sources, zip_content
 
 last_data_year = zip_content()[1]
@@ -29,4 +29,4 @@ for rentree in ALL_RENTREES:
 # with pd.ExcelWriter(data_review_excel(), mode='a', if_sheet_exists="replace") as writer:
 #     pd.DataFrame(df_items.to_excel(writer, sheet_name='items_count_by_vars', index=False, na_rep='Nan')) 
 df_items.mask(df_items=='', inplace=True)
-df_items.to_pickle(f"{DATA_PATH}/output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
+df_items.to_pickle(f"{PATH}/output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
