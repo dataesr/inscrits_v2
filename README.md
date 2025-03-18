@@ -1,4 +1,4 @@
-# inscrits_v2
+# Inscrits (SISE) v2
 
 - create a root file into config_path.py with path to project_folder (This file is ignored.)
 
