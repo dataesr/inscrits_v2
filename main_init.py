@@ -1,7 +1,7 @@
 
 import os
 import pandas as pd
-from main_library import *
+from step1_data_update.sise_content import *
 from config_path import PATH
 
 # liste des datasets du zip parquet, extraction de la dernière années des données dispo
