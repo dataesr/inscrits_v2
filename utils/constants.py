@@ -1,4 +1,4 @@
-vars_list=["CURSUS_LMD",	"CYCLE",	"DEGETU",	"NATURE",	"NIVEAU",	"NIVEAU_D",	
+get_vars=["CURSUS_LMD",	"CYCLE",	"DEGETU",	"NATURE",	"NIVEAU",	"NIVEAU_D",	
  "NIVEAU_F",	"SECTDIS",	"TYP_DIPL",	"VOIE",	"DIPLOM",	"GROUPE",	"SPECIA",
  "SPECIB",	"SPECIC",	"PAR_TYPE",	"libelle_intitule_1_DIPLOM",
  "libelle_intitule_2_DIPLOM",	"DEPRESPA",	"PCSPAR",	"COMETA",	
