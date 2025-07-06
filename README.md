@@ -22,7 +22,7 @@ This project involves managing and processing data related to registrations (Ins
 1. **Create a root file `config_path.py` with the path to your project folder. This file is ignored by Git.**
     PATH: This variable should point to the general 'inscrits' folder outside of the GitHub code repository.
 
-    ```python
+
     PATH = '/path/to/your/inscrits/folder'
 
     Ensure the 'inscrits' folder contains the following subdirectories:
@@ -43,4 +43,4 @@ This step should be executed at the launch of the campaign with INITIALISATION s
 - items_by_vars: Lists all items per variable and their frequency by source.
 
 - output
-    - zip parquet_basic: save per year a complete SISE file with selected columns (as declared in utils).
+    - zip sise_parquet: save per year a complete SISE file with selected columns (as declared in utils).
