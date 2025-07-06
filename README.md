@@ -27,8 +27,8 @@ This project involves managing and processing data related to registrations (Ins
 
     Ensure the 'inscrits' folder contains the following subdirectories:
 
-        - input/: Directory for input data files
-        - output/: Directory for output data files
+      - input/: Directory for input data files
+      - output/: Directory for output data files
 
 
 ## Main Script
