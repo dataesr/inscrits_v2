@@ -12,7 +12,7 @@ This project involves managing and processing data related to registrations (Ins
   - [Directory Structure](#directory-structure)
 - [Main Script](#main-script)
   - [DATA_INIT](#step-1-data_init)
-  - [SISE_READ](#sise_read)
+    - [SISE_READ](#sise_read)
 
 
 ## Setup
@@ -31,6 +31,7 @@ This project involves managing and processing data related to registrations (Ins
       - output/: Directory for output data files
 
 
+
 ## Main Script
 MAIN.py
 This script is responsible for the overall management of the program. Below is an outline of its functionality:
@@ -38,9 +39,9 @@ This script is responsible for the overall management of the program. Below is a
 ### Step 1: DATA_INIT
 This step should be executed at the launch of the campaign with INITIALISATION set to TRUE.
 
-#### SISE_READ
-- Export Data Review: data_review_(year).xlsx to check the data.
-- items_by_vars: Lists all items per variable and their frequency by source.
+  #### SISE_READ
+  - Export Data Review: data_review_(year).xlsx to check the data.
+  - items_by_vars: Lists all items per variable and their frequency by source.
 
-- output
-    - zip sise_parquet: save per year a complete SISE file with selected columns (as declared in utils).
+  - output
+      - zip sise_parquet: save per year a complete SISE file with selected columns (as declared in utils).
