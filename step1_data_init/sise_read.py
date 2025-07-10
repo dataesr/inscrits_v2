@@ -57,11 +57,15 @@ def sise_read(path):
             tmp = df_all.groupby(['rentree', 'source'])[i].value_counts(dropna=False).reset_index().rename(columns={i:'item'}).assign(variable=i)
             df_items = pd.concat([df_items, tmp])
             del tmp
+        tmp = (df_all.groupby(['rentree', 'source', 'etabli', 'compos'])
+               .agg(sum_var=('effectif', 'sum'), count_rows=('effectif', 'size'))
+               .reset_index())
     print("- export completed sise_parquet")
 
     with pd.ExcelWriter(excel_path, mode='a', if_sheet_exists="replace") as writer:  
         vars_review.to_excel(writer, sheet_name='l2_vars_source_year', index=False)
 
     # creation d'un fichier pkl avec toutes les modalités par var pour contrôle
+    tmp.to_pickle(f"{path}output/frequency_etabli_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
     df_items.mask(df_items=='', inplace=True)
-    df_items.to_pickle(f"{path}/output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
+    df_items.to_pickle(f"{path}output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
