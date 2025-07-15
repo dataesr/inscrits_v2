@@ -72,7 +72,6 @@ def bcn_complete():
     "Etudiant étranger extracommunautaire et EXONERATIONS DE PARTENARIAT AVEC UN ETABLISSEMENT ETRANGER OU PROGRAMMES COMMUNAUTAIRES OU INTERNATIONAUX D’ACCUEIL D’ETUDIANTS (Erasmus+,etc….) ou autre exonération hors plafond (empêché, à distance,… )(EXONERATIONS PARTIELLES)"]})
     bcn1[variable_name] = df
 
-
     variable_name = 'N_AMENA'
     df=pd.DataFrame({'AMENA':['1', '2', '3', '4', '5', '6'], 'AMENA_LIBELLE':[
     "CURSUS AMENAGE",
@@ -82,5 +81,26 @@ def bcn_complete():
     "LICENCE ALLONGEE (LOI ORE)",
     "LICENCE 3 ANS AVEC COMPLEMENTS PARALLELES (LOI ORE)"]})
     bcn1[variable_name] = df
+
+    variable_name = 'N_OPPOSITION'
+    df=pd.DataFrame({'OPPOS':['O', 'N'], 'OPPOS_LIBELLE':[
+    "Opposition à la diffusion des données",
+    "Aucune opposition"]})
+    bcn1[variable_name] = df
+
+    variable_name = 'N_MEEF'
+    df=pd.DataFrame({'FLAG_MEEF':['0', '1'], 'MEEF_LIBELLE':[
+    "Autres",
+    "Inscriptions en master MEEF et DU formation adaptée enseignement"]})
+    bcn1[variable_name] = df
+
+    variable_name = 'N_SUP'
+    df=pd.DataFrame({'FLAG_SUP':['0', '1'], 'SUP_LIBELLE':[
+    "Inscriptions validess",
+    "Non valides"]})
+    bcn1[variable_name] = df
+
+    for i in bcn1:
+        bcn1[i].columns=bcn1[i].columns.str.lower()
 
     return bcn1
