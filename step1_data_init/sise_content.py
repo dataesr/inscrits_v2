@@ -39,7 +39,20 @@ def vars_compare(filename, source, rentree):
     return df.drop(columns=slist_to_delete).T.reset_index().assign(source=source, rentree=rentree).rename(columns={0:'ex', 'index':'variable'})
 
 
-def src_load(excel_path, filename, source, rentree):
+def correctif_vars(df):
+    for col in list(df.columns):
+        if df[col].dtype == float:
+            df[col] = df[col].astype(str)
+    
+    for col in df.columns:
+        if df[col].dtype == object:
+            df[col] = df[col].str.split('.0', regex=False).str[0].str.strip()
+            df[col] = df[col].str.replace('nan', '', regex=False).str.strip()
+            # df[col] = df[col].str.replace(u'\xa0', ' ').str.strip()
+    return df
+
+
+def src_load(filename, source, rentree):
     from config_path import PATH
     from utils.constants import get_vars
     with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
@@ -49,12 +62,9 @@ def src_load(excel_path, filename, source, rentree):
     df_vars = df[df.columns[df.columns.isin(get_vars)]]
     df_vars.columns = df_vars.columns.str.lower()
     df_vars = df_vars.assign(rentree=rentree, source=source)
-
-    # to check the data from the new datasets
-    with pd.ExcelWriter(excel_path, mode='a', if_sheet_exists="replace") as writer:  
-        pd.DataFrame({"name": df_vars.columns, "non-nulls": len(df_vars)-df_vars.isnull().sum().values, "nulls": df_vars.isnull().sum().values}).to_excel(writer, sheet_name=filename, index=False)
-    
+    df_vars = correctif_vars(df_vars)
     return df_vars
+
 
 def data_save(rentree, df_all, last_data_year):
     from config_path import PATH

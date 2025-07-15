@@ -1,36 +1,28 @@
 def vars_sise_to_be_check(year, bcn):
     from config_path import PATH
+    from utils.bcn_vars import vbcn
     import pandas as pd
 
 
     vars_sise = pd.read_pickle(f"{PATH}output/items_by_vars{year}.pkl", compression='gzip')
 
-    # vs = vars_sise[['variable']].drop_duplicates()
-    vs = vars_sise.variable.str.lower().unique()
-    bcn_info = [{'bcn_df': key, 'vars_ref': df.columns.tolist()} for key, df in bcn.items()]
-    # Create a DataFrame from the list of dictionaries
-    bcn_vars = pd.DataFrame(bcn_info)
-    # Explode the 'Columns' list into separate rows
-    bcn_vars = bcn_vars.explode('vars_ref').reset_index(drop=True)
-    bcn_vars['vars_ref'] = bcn_vars['vars_ref'].str.lower()
-    filtre=bcn_vars.loc[bcn_vars.vars_ref.isin(vs)]
-    # bcn_vars=bcn.merge(vs, how='inner', left_on='vars_ref', right_on='variable')
- 
-        
+    for k in ['oppos', 'flag_meef', 'flag_sup']:
+        if k=='oppos':
+            vars_sise.loc[(vars_sise.variable==k)&(~vars_sise.item.isin(['O', 'N'])), 'hors_nomenclature'] = '1'
+        else: 
+            vars_sise.loc[(vars_sise.variable==k)&(~vars_sise.item.isin(['0', '1'])), 'hors_nomenclature'] = '1'
 
+    for k,v in vbcn.items():
+        bcn[v].columns=bcn[v].columns.str.lower()
+        if k in bcn[v].columns:
+            l=bcn[v][k].unique()
+        else:
+            print(f"- le nom de variable {k} n'existe pas dans {v}\n - le code suivant va extraire la 1ere colonne {bcn[v].columns[0]}")
+            l=bcn[v].iloc[:,0].unique()
+            
+        vars_sise.loc[(vars_sise.variable==k)&(~vars_sise.item.isin(l)), 'hors_nomenclature'] = '1'    
 
-        # # vars_ref=pd.concat([vars_ref, pd.DataFrame({'bcn_data': name, 'vars_ref':bcn[name].columns})])
-
-    ['acabac', 
-     'age', 
-     'anbac', 
-     'annais', 'bac', 'bac_rgrp', 'cometa',
-       'comins', 'compos', 'conv', 'curpar', 'cursus_lmd', 'cycle',
-       'degetu', 'deprespa', 'dipder', 'diplom', 'effectif', 'etabli',
-       'flag_sup', 'groupe', 'inspr', 'nation', 'nature', 'nbach', 'net',
-       'niveau', 'niveau_d', 'niveau_f', 'paripa', 'pcspar', 'regime',
-       'sectdis', 'sexe', 'situpre', 'specia', 'specib', 'specic',
-       'typ_dipl', 'typrepa', 'voie', 'numed', 'depbac', 'amena',
-       'etabli_diffusion', 'flag_meef', 'oppos', 'par_type', 'exoins',
-       'bac_spe1', 'bac_spe2', 'libelle_intitule_1_diplom',
-       'libelle_intitule_2_diplom']
+    vars_sise.loc[vars_sise.item.isnull(), 'item']='NULL'
+    vars_sise.to_csv(f"{PATH}test/vars_hs_nomen.csv", sep=';', encoding='utf-8', index=False, na_rep='')
+   
+    return vars_sise

@@ -1,4 +1,4 @@
-def bcn():
+def bcn_harvest():
     from config_path import PATH
     from utils.functions_shared import last_file_into_folder
     import os, zipfile, json, pandas as pd, re
@@ -39,6 +39,7 @@ def bcn():
                     except json.JSONDecodeError as e:
                         print(f"Erreur lors du parsing du fichier {file_info.filename}: {e}")
 
+
     # Liste des noms des DataFrames
     dataframe_names = list(dataframes.keys())
 
@@ -47,4 +48,39 @@ def bcn():
     for name in dataframe_names:
         print(name)
 
+
     return dataframes
+
+
+def bcn_complete():
+    from utils.bcn_load import bcn_harvest
+    import pandas as pd
+
+    bcn1=bcn_harvest()
+
+    variable_name = 'N_EXONERATIONS'
+    df=pd.DataFrame({'EXOINS':['A1', 'A2', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8'], 'EXOINS_LIBELLE':[
+    "Etudiant français ou communautaire et EXONERATIONS D’ETABLISSEMENT (EXONERATIONS TOTALES)",
+    "Etudiant étranger communautaire et EXONERATIONS BOURSES DU GOUVERNEMENT FRANÇAIS (EXONERATIONS TOTALES)",
+    "Etudiant étranger extracommunautaire hors PERIMETRE D’APPLICATION DES DROITS MAJORES (doctorant ou inscrit en 2018-2019 ou inscrit en CPGE ou réfugié ou membre de famille de l’UE ou résident de longue durée ou résidence fiscale depuis plus de deux ans)",
+    "Etudiant étranger extracommunautaire et TARIF PLEIN",
+    "Etudiant étranger extracommunautaire et EXONERATIONS D’AMBASSADES (EXONERATIONS PARTIELLES)",
+    "Etudiant étranger extracommunautaire et EXONERATIONS BOURSES DU GOUVERNEMENT FRANÇAIS (EXONERATIONS TOTALES)",
+    "Etudiant étranger extracommunautaire et EXONERATIONS D’ETABLISSEMENT (EXONERATIONS TOTALES)",
+    "Etudiant étranger extracommunautaire et EXONERATIONS D’ETABLISSEMENT (EXONERATIONS PARTIELLES)",
+    "Etudiant étranger extracommunautaire et EXONERATIONS DE PARTENARIAT AVEC UN ETABLISSEMENT ETRANGER OU PROGRAMMES COMMUNAUTAIRES OU INTERNATIONAUX D’ACCUEIL D’ETUDIANTS (Erasmus+,etc….) ou autre exonération hors plafond (empêché, à distance,… )… (EXONERATIONS TOTALES)",
+    "Etudiant étranger extracommunautaire et EXONERATIONS DE PARTENARIAT AVEC UN ETABLISSEMENT ETRANGER OU PROGRAMMES COMMUNAUTAIRES OU INTERNATIONAUX D’ACCUEIL D’ETUDIANTS (Erasmus+,etc….) ou autre exonération hors plafond (empêché, à distance,… )(EXONERATIONS PARTIELLES)"]})
+    bcn1[variable_name] = df
+
+
+    variable_name = 'N_AMENA'
+    df=pd.DataFrame({'AMENA':['1', '2', '3', '4', '5', '6'], 'AMENA_LIBELLE':[
+    "CURSUS AMENAGE",
+    "SEMESTRIALISATION",
+    "CESURE",
+    "LICENCE EN AVANCE (LOI ORE)",
+    "LICENCE ALLONGEE (LOI ORE)",
+    "LICENCE 3 ANS AVEC COMPLEMENTS PARALLELES (LOI ORE)"]})
+    bcn1[variable_name] = df
+
+    return bcn1
