@@ -1,7 +1,7 @@
 from library_import import *
 from config_path import PATH
 
-INITIALISATION = False
+INITIALISATION = True
 
 if INITIALISATION == True:
     # read sise file, select vars, create of excel files to check data, save concatenate data into parquet file per year
