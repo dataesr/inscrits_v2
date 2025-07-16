@@ -21,6 +21,6 @@ def vars_sise_to_be_check(year, bcn, com):
         tmp.loc[~tmp.item.isin(l), 'hors_nomenclature'] = '1'
         hors_nomen=pd.concat([hors_nomen, tmp], ignore_index=True)  
 
-    hors_nomen.to_csv(f"{PATH}test/vars_hs_nomen.csv", sep=';', encoding='utf-8', index=False, na_rep='')
+    hors_nomen.to_csv(f"{PATH}test/vars_hs_nomen.csv", sep=';', encoding='utf-8', index=False, na_rep='', float_format='str')
    
     return hors_nomen
