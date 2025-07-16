@@ -41,11 +41,12 @@ def vars_compare(filename, source, rentree):
 
 def correctif_vars(df):
     for col in list(df.columns):
-        if df[col].dtype == float:
+        if pd.api.types.is_numeric_dtype(df[col]):
             df[col] = df[col].astype(str)
     
     for col in df.columns:
         if df[col].dtype == object:
+            df[col] = df[col].astype(str)
             df[col] = df[col].str.split('.0', regex=False).str[0].str.strip()
             df[col] = df[col].str.replace('nan', '', regex=False).str.strip()
             # df[col] = df[col].str.replace(u'\xa0', ' ').str.strip()
