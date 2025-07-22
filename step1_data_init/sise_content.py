@@ -1,8 +1,10 @@
 
-import pandas as pd, zipfile, os
+import pandas as pd, zipfile, os, json
 import pyarrow as pa
 from pyarrow.parquet import ParquetFile
 
+global CONF
+CONF=json.load(open('utils/config_sise.json', 'r'))
 
 def zip_content():
     # Importer le chemin de configuration depuis un module externe
@@ -40,30 +42,44 @@ def vars_compare(filename, source, rentree):
 
 
 def correctif_vars(df):
-    for col in list(df.columns):
-        if pd.api.types.is_numeric_dtype(df[col]):
-            df[col] = df[col].astype(str)
+    # for col in list(df.columns):
+    #     if pd.api.types.is_numeric_dtype(df[col]):
+    #         df[col] = df[col].astype(str)
     
-    for col in df.columns:
-        if df[col].dtype == object:
-            df[col] = df[col].astype(str)
-            df[col] = df[col].str.split('.0', regex=False).str[0].str.strip()
-            df[col] = df[col].str.replace('nan', '', regex=False).str.strip()
-            # df[col] = df[col].str.replace(u'\xa0', ' ').str.strip()
+    # for col in df.columns:
+    #     if df[col].dtype == object:
+    #         df[col] = df[col].astype(str)
+    #         df[col] = df[col].str.split('.0', regex=False).str[0].str.strip()
+    #         df.loc[df[col].str.contains(r'^(nan|none)$', regex=True, case=False), col] = ''
+    
+    for conf in CONF:
+        var_sise = conf["var_sise"]
+        format_type = conf["format"]
+        missing_value = conf["missing_value"]
+
+        if var_sise in df.columns:
+            if format_type=='str':
+                df[var_sise] = df[var_sise].astype(format_type)
+                df[var_sise] = df[var_sise].str.split('.0', regex=False).str[0].str.strip()
+                df.loc[df[var_sise].str.match(pat='(nan)|(none)', case=False), var_sise] = ''        
+                df = df.mask(df=='')
+                df[var_sise] = df[var_sise].fillna(missing_value)
+
+            if format_type=='int':
+                df[var_sise] = pd.to_numeric(df[var_sise], errors='coerce').astype('Int64')
     return df
 
 
 def src_load(filename, source, rentree):
     from config_path import PATH
-    from utils.constants import get_vars
     with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
         df = pd.read_parquet(z.open(f'parquet_origine/{filename}.parquet'), engine='pyarrow')
 
     # list columns and lowercase name, create vars RENTREE/SOURCE
-    df_vars = df[df.columns[df.columns.isin(get_vars)]]
+    df_vars = df[df.columns[df.columns.str.lower().isin([conf.get('var_sise') for conf in CONF])]]
     df_vars.columns = df_vars.columns.str.lower()
     df_vars = df_vars.assign(rentree=rentree, source=source)
-    df_vars = correctif_vars(df_vars)
+    # df_vars = correctif_vars(df_vars)
     return df_vars
 
 

@@ -1,7 +1,7 @@
 def bcn_harvest():
     from config_path import PATH
     from utils.functions_shared import last_file_into_folder
-    import os, zipfile, json, pandas as pd, re
+    import zipfile, json, pandas as pd, re
 
     # Répertoire contenant les fichiers ZIP
     directory = f'{PATH}bcn/'
@@ -53,8 +53,9 @@ def bcn_harvest():
 
 
 def bcn_complete():
+    from config_path import PATH_NOMEN
     from utils.bcn_load import bcn_harvest
-    import pandas as pd
+    import pandas as pd, pickle
 
     bcn1=bcn_harvest()
 
@@ -102,5 +103,16 @@ def bcn_complete():
 
     for i in bcn1:
         bcn1[i].columns=bcn1[i].columns.str.lower()
+    
+    with open(f'{PATH_NOMEN}bcn.pkl', 'wb') as file:
+        pickle.dump(bcn1, file)
+   
 
-    return bcn1
+def get_all_bcn():
+    from config_path import PATH_NOMEN
+    import pickle, pandas as pd
+
+    with open(f'{PATH_NOMEN}bcn.pkl', 'rb') as file:
+        bcn = pickle.load(file)
+        
+    return bcn
