@@ -38,7 +38,9 @@ This script is responsible for the overall management of the program. Below is a
 
 ### Step 1: DATA_INIT
 This step should be executed at the launch of the campaign with INITIALISATION set to TRUE.
-
+  #### NOMENCLATURES
+  - load and update BCN, LES_COMMUNES, PAYSAGE_id
+  
   #### SISE_READ
   - Export Data Review: data_review_(year).xlsx to check the data.
   - items_by_vars: Lists all items per variable and their frequency by source.
