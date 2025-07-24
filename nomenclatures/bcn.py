@@ -54,7 +54,7 @@ def bcn_harvest():
 
 def bcn_complete():
     from config_path import PATH_NOMEN
-    from utils.bcn_load import bcn_harvest
+    from nomenclatures.bcn import bcn_harvest
     import pandas as pd, pickle
 
     bcn1=bcn_harvest()
