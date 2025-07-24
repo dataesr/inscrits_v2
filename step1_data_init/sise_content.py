@@ -3,24 +3,40 @@ import pandas as pd, zipfile, os, json
 import pyarrow as pa
 from pyarrow.parquet import ParquetFile
 
+
+
+def get_most_recent_year(items):
+    # Extraire les années potentielles et les convertir en entiers
+    years = []
+    for item in items:
+        # Prendre les deux derniers caractères et ajouter le préfixe '20'
+        year_str = '20' + item[-2:]
+        if year_str.isdigit():  # Vérifier si c'est bien un nombre
+            years.append(int(year_str))
+    years.remove(2099)
+    return max(years)
+
+
 def zip_content():
     # Importer le chemin de configuration depuis un module externe
     from config_path import PATH
 
     # Ouvrir le fichier ZIP en mode lecture
-    with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
-        # Créer une série pandas à partir des noms des fichiers dans le ZIP
-        # Filtrer les éléments non vides, diviser les noms de fichiers et extraire la partie pertinente
-        z_content = pd.Series(
-            filter(None, [i.split('.')[0] for i in z.namelist()]),
-            name='dataset_name'
-        )
+    parquet_files = []
+
+    with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as zip_ref:
+        for file_info in zip_ref.infolist():
+            if file_info.filename.endswith('.parquet'):
+                # Extraire uniquement le nom du fichier sans le chemin
+                file_name = os.path.basename(file_info.filename)
+                parquet_files.append(file_name.split('.')[0] )
 
         # Extraire la dernière année des données en utilisant le dernier élément de la série
-        last_data_year = f'20{z_content.iloc[-1][-2:]}'
+        # last_data_year = f'20{parquet_files.iloc[-1][-2:]}'
+        last_data_year = get_most_recent_year(parquet_files)
 
     # Retourner la série et la dernière année des données
-    return [z_content, last_data_year]
+    return [parquet_files, last_data_year]
 
 
 def vars_compare(filename, source, rentree):
