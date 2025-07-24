@@ -40,3 +40,16 @@ def last_year_into_zip(path):
         )})
     print(f"the zip last year is {year}")
     return year
+
+
+def nomenclatures_load(nomen):
+    if nomen.lower()=='bcn':
+        from nomenclatures.bcn import get_all_bcn
+        return get_all_bcn()
+    if nomen.lower()=='paysage_id':
+        from api_process.paysage import get_paysage_id
+        return get_paysage_id()
+    if nomen=='google_sheet':
+        from nomenclatures.google_sheet import get_all_correctifs
+        return get_all_correctifs()
+
