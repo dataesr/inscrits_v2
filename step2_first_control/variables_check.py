@@ -1,6 +1,6 @@
 from api_process.paysage import *
-from utils.bcn_load import *
-from utils.googleSheet import *
+from nomenclatures.bcn import *
+from nomenclatures.google_sheet import *
 from config_path import PATH
 import pandas as pd, json, numpy as np
 
