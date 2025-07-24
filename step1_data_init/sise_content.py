@@ -12,7 +12,7 @@ def zip_content():
         # Créer une série pandas à partir des noms des fichiers dans le ZIP
         # Filtrer les éléments non vides, diviser les noms de fichiers et extraire la partie pertinente
         z_content = pd.Series(
-            filter(None, [i.split('.')[0].split('/')[1] for i in z.namelist()]),
+            filter(None, [i.split('.')[0] for i in z.namelist()]),
             name='dataset_name'
         )
 
