@@ -6,10 +6,11 @@ INITIALISATION = False
 
 if INITIALISATION == True:
     # read sise file, select vars, create of excel files to check data, save concatenate data into parquet file per year
-    # sise_config()
+    sise_config()
     get_all_correctifs_from_google()
     bcn_complete()
     get_paysageODS("fr-esr-paysage_structures_identifiants")
+    
     sise_read(PATH)
 
 

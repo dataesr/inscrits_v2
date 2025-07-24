@@ -27,15 +27,13 @@ def sise_read(path):
             dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)
 
 
-
     # Chargement des tables et création d'une base complète df_all sauvé au format parquet
     ### Ajout des infos sur l'état des sources dans 
     # etat des variables par année source
-    # vars_review = pd.DataFrame(columns=['variable', 'ex', 'source', 'rentree'])
     df_items = pd.DataFrame()
     etabli_correctif = pd.DataFrame()
 
-    ALL_RENTREES = list(range(2017, int(last_data_year)+1))
+    ALL_RENTREES = list(range(2004, int(last_data_year)+1))
     for rentree in ALL_RENTREES:
         df_all = pd.DataFrame()
         sources = get_sources(rentree)
