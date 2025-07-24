@@ -3,9 +3,6 @@ import pandas as pd, zipfile, os, json
 import pyarrow as pa
 from pyarrow.parquet import ParquetFile
 
-global CONF
-CONF=json.load(open('utils/config_sise.json', 'r'))
-
 def zip_content():
     # Importer le chemin de configuration depuis un module externe
     from config_path import PATH
@@ -42,20 +39,12 @@ def vars_compare(filename, source, rentree):
 
 
 def correctif_vars(df):
-    # for col in list(df.columns):
-    #     if pd.api.types.is_numeric_dtype(df[col]):
-    #         df[col] = df[col].astype(str)
-    
-    # for col in df.columns:
-    #     if df[col].dtype == object:
-    #         df[col] = df[col].astype(str)
-    #         df[col] = df[col].str.split('.0', regex=False).str[0].str.strip()
-    #         df.loc[df[col].str.contains(r'^(nan|none)$', regex=True, case=False), col] = ''
-    
+    CONF=json.load(open('utils/config_sise.json', 'r'))
     for conf in CONF:
         var_sise = conf["var_sise"]
         format_type = conf["format"]
         missing_value = conf["missing_value"]
+        empty_value = conf["empty"]
 
         if var_sise in df.columns:
             if format_type=='str':
@@ -67,6 +56,9 @@ def correctif_vars(df):
 
             if format_type=='int':
                 df[var_sise] = pd.to_numeric(df[var_sise], errors='coerce').astype('Int64')
+        
+            df['no_empty'] = empty_value
+            
     return df
 
 
@@ -74,6 +66,7 @@ def src_load(filename, source, rentree):
     from config_path import PATH
     with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
         df = pd.read_parquet(z.open(f'parquet_origine/{filename}.parquet'), engine='pyarrow')
+    CONF=json.load(open('utils/config_sise.json', 'r'))
 
     # list columns and lowercase name, create vars RENTREE/SOURCE
     df_vars = df[df.columns[df.columns.str.lower().isin([conf.get('var_sise') for conf in CONF])]]
