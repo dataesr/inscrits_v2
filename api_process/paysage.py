@@ -12,7 +12,7 @@ def get_paysageODS(dataset):
 
 def get_paysage_id():
     from config_path import PATH_NOMEN
-    import json, pandas as pd
+    import json
 
     with open(f'{PATH_NOMEN}/paysage_id.json', "r") as f:
         file = json.load(f)
