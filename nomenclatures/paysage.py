@@ -1,6 +1,6 @@
 def get_paysageODS(dataset):
     import requests, pandas as pd, json
-    from api_process.config_api import ods_headers
+    from utils.config_api import ods_headers
     from config_path import PATH_NOMEN
 
     url=f"https://data.enseignementsup-recherche.gouv.fr/api/explore/v2.1/catalog/datasets/{dataset}/exports/json"

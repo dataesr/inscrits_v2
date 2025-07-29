@@ -11,7 +11,7 @@
         "var_rgp":"BAC",
         "var_sise":"anbac",
         "n_data":"",
-        "format":"str",
+        "format":"int",
         "missing_value":"-1",
         "empty":""
     },
@@ -147,16 +147,16 @@
         "var_rgp":"ETUDIANT",
         "var_sise":"age",
         "n_data":"",
-        "format":"str",
-        "missing_value":"-1",
+        "format":"int",
+        "missing_value":"",
         "empty":"NO"
     },
     {
         "var_rgp":"ETUDIANT",
         "var_sise":"annais",
         "n_data":"",
-        "format":"str",
-        "missing_value":"-1",
+        "format":"int",
+        "missing_value":"",
         "empty":"NO"
     },
     {
@@ -164,7 +164,7 @@
         "var_sise":"deprespa",
         "n_data":"N_DEPARTEMENT",
         "format":"str",
-        "missing_value":"000",
+        "missing_value":"0",
         "empty":""
     },
     {
@@ -372,7 +372,7 @@
         "var_sise":"niveau",
         "n_data":"N_ANNEE_DANS_FORMATION_SISE",
         "format":"str",
-        "missing_value":"00",
+        "missing_value":"0",
         "empty":""
     },
     {
@@ -422,5 +422,4 @@
         "format":"str",
         "missing_value":"-1",
         "empty":""
-    }
-]
+    }]

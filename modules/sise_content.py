@@ -54,13 +54,12 @@ def vars_compare(filename, source, rentree):
     return df.drop(columns=slist_to_delete).T.reset_index().assign(source=source, rentree=rentree).rename(columns={0:'ex', 'index':'variable'})
 
 
-def correctif_vars(df):
+def vars_init(df):
     CONF=json.load(open('utils/config_sise.json', 'r'))
     for conf in CONF:
         var_sise = conf["var_sise"]
         format_type = conf["format"]
         missing_value = conf["missing_value"]
-        empty_value = conf["empty"]
 
         if var_sise in df.columns:
             if format_type=='str':
@@ -72,8 +71,6 @@ def correctif_vars(df):
 
             if format_type=='int':
                 df[var_sise] = pd.to_numeric(df[var_sise], errors='coerce').astype('Int64')
-        
-            df['no_empty'] = empty_value
             
     return df
 
@@ -81,14 +78,14 @@ def correctif_vars(df):
 def src_load(filename, source, rentree):
     from config_path import PATH
     with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
-        df = pd.read_parquet(z.open(f'parquet_origine/{filename}.parquet'), engine='pyarrow')
+        df = pd.read_parquet(z.open(f'{filename}.parquet'), engine='pyarrow')
+
     CONF=json.load(open('utils/config_sise.json', 'r'))
 
     # list columns and lowercase name, create vars RENTREE/SOURCE
     df_vars = df[df.columns[df.columns.str.lower().isin([conf.get('var_sise') for conf in CONF])]]
     df_vars.columns = df_vars.columns.str.lower()
     df_vars = df_vars.assign(rentree=rentree, source=source)
-    # df_vars = correctif_vars(df_vars)
     return df_vars
 
 

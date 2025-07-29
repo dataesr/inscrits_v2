@@ -1,13 +1,14 @@
-from api_process.paysage import *
+from nomenclatures.paysage import *
 from nomenclatures.bcn import *
 from nomenclatures.google_sheet import *
+from utils.functions_shared import nomenclatures_load
 from config_path import PATH
 import pandas as pd, json, numpy as np
 
 global CORRECTIFS_dict, BCN, PAYSAGE_id
-CORRECTIFS_dict = get_all_correctifs()
-BCN = get_all_bcn()
-PAYSAGE_id = get_paysage_id()
+CORRECTIFS_dict = nomenclatures_load('google_sheet')
+BCN = nomenclatures_load('bcn')
+PAYSAGE_id = nomenclatures_load('paysage_id')
 
 
 def etabli_paysage(year):
@@ -25,7 +26,7 @@ def etabli_paysage(year):
 
 
 def vars_sise_to_be_check(year):
-    from step2_first_control.variables_check import etabli_paysage
+    from modules.variables_check import etabli_paysage
 
     CONF=json.load(open('utils/config_sise.json', 'r'))
     vars_sise = pd.read_pickle(f"{PATH}output/items_by_vars{year}.pkl", compression='gzip')
@@ -45,7 +46,7 @@ def vars_sise_to_be_check(year):
                 if var_sise in BCN[nomen].columns:
                     l=BCN[nomen][var_sise].unique()
                 else:
-                    print(f"*> le nom de variable {var_sise} n'existe pas dans {nomen}\n - le code suivant va extraire la 1ere colonne {BCN[nomen].columns[0]}")
+                    print(f"*> {var_sise} n'existe pas dans {nomen}\n  - le code suivant va extraire la 1ere colonne {BCN[nomen].columns[0]}")
                     l=BCN[nomen].iloc[:,0].unique()
 
             tmp=vars_sise.loc[(vars_sise.variable==var_sise)].assign(nomenclature=nomen)

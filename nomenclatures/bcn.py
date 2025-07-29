@@ -89,6 +89,12 @@ def bcn_complete():
     "Aucune opposition"]})
     bcn1[variable_name] = df
 
+    variable_name = 'N_EFFECTIF'
+    df=pd.DataFrame({'EFFECTIF':[0, 1], 'EFFECTIF_LIBELLE':[
+    "Inscriptions secondaires",
+    "Inscriptions principales"]})
+    bcn1[variable_name] = df
+
     variable_name = 'N_MEEF'
     df=pd.DataFrame({'FLAG_MEEF':['0', '1'], 'MEEF_LIBELLE':[
     "Autres",

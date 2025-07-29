@@ -1,7 +1,6 @@
 def sise_read(path):
-    import os
     import pandas as pd
-    from step1_data_init.sise_content import zip_content, vars_compare, src_load, data_save, correctif_vars
+    from modules.sise_content import zip_content, src_load, data_save, vars_init
     from utils.functions_shared import get_sources
     
 
@@ -10,24 +9,7 @@ def sise_read(path):
     print(f"dernière rentrée de sise dispo: {last_data_year}")
 
 
-    ### Création du fichier vide excel DATA_REVIEWW_(last_year) pour contrôler les variables
-    # Construire le chemin complet du fichier Excel en utilisant l'année fournie
-    excel_path = os.path.join(path, f"data_review_{last_data_year}.xlsx")
-
-    # Vérifier si le fichier Excel existe déjà
-    if not os.path.exists(excel_path):
-        # Si le fichier n'existe pas, le créer en mode écriture
-        with pd.ExcelWriter(excel_path, mode='w', engine='openpyxl') as writer:
-            # Écrire le DataFrame dataset_list dans une feuille nommée 'l1_datasets'
-            dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)
-    else:
-        # Si le fichier existe déjà, l'ouvrir en mode ajout
-        with pd.ExcelWriter(excel_path, mode="a", if_sheet_exists="replace", engine='openpyxl') as writer:
-            # Remplacer la feuille 'l1_datasets' si elle existe déjà, sinon la créer
-            dataset_list.to_excel(writer, sheet_name='l1_datasets', index=False)
-
-
-    # Chargement des tables et création d'une base complète df_all sauvé au format parquet
+    # Chargement des tables et création d'une base complète df_all sauvé au format parquet par année
     ### Ajout des infos sur l'état des sources dans 
     # etat des variables par année source
     df_items = pd.DataFrame()
@@ -42,20 +24,11 @@ def sise_read(path):
             filename = f'{source}{str(rentree)[2:4]}'
             print(filename)
 
-            # nettoyage des variables suppression des vars en doublon commençant par 'S'
-            # df = vars_compare(filename, source, rentree)
-            # vars_review = pd.concat([vars_review, df], ignore_index=True)
-
             # chargement des tables en conservant que les variables de la liste utils/vars_list
-            df = src_load(filename, source, rentree)
-
-            # to check the data from the new datasets
-            # with pd.ExcelWriter(excel_path, mode='a', if_sheet_exists="replace") as writer:  
-            #     pd.DataFrame({"name": df.columns, "non-nulls": len(df)-df.isnull().sum().values, "nulls": df.isnull().sum().values}).to_excel(writer, sheet_name=filename, index=False)
- 
+            df = src_load(filename, source, rentree) 
             df_all = pd.concat([df_all, df], ignore_index=True)
             
-        df_all = correctif_vars(df_all)
+        df_all = vars_init(df_all)
 
         # sauvegarde dans output d'un sise complet par année au format parquet
         data_save(rentree, df_all, last_data_year)
@@ -68,9 +41,6 @@ def sise_read(path):
                .agg(effectif_tot=('effectif', 'sum'), count_rows=('effectif', 'size'))
                .reset_index())])
     print("- export completed sise_parquet")
-
-    # with pd.ExcelWriter(excel_path, mode='a', if_sheet_exists="replace") as writer:  
-    #     vars_review.to_excel(writer, sheet_name='l2_vars_source_year', index=False)
 
     # creation d'un fichier pkl avec toutes les modalités par var pour contrôle
     etabli_correctif.to_pickle(f"{path}output/frequency_etabli_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})

@@ -47,9 +47,21 @@ def nomenclatures_load(nomen):
         from nomenclatures.bcn import get_all_bcn
         return get_all_bcn()
     if nomen.lower()=='paysage_id':
-        from api_process.paysage import get_paysage_id
+        from nomenclatures.paysage import get_paysage_id
         return get_paysage_id()
-    if nomen=='google_sheet':
+    if nomen.lower()=='google_sheet':
         from nomenclatures.google_sheet import get_all_correctifs
         return get_all_correctifs()
 
+
+def get_individual_source(source, rentree):
+    import pandas as pd, zipfile
+
+    filename = f'{source}{str(rentree)[2:4]}'
+    print(filename)
+
+    from config_path import PATH
+    with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
+        df = pd.read_parquet(z.open(f'{filename}.parquet'), engine='pyarrow')
+
+    return df

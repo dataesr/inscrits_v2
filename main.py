@@ -13,12 +13,13 @@ if INITIALISATION == True:
     
     sise_read(PATH)
 
-
 # STEP 2
 last_data_year = last_year_into_zip(f"{PATH}output/")
 
 vars_sise_to_be_check(last_data_year)
 
+# si besoin de vérifier une source spécifique sans traitement
+# df=get_individual_source('mana', '2013')
 # from test_py import work_csv
 # work_csv(x, 'vars_hs_nomen')
 
