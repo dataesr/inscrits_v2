@@ -13,7 +13,7 @@ def sise_read(path):
     ### Ajout des infos sur l'état des sources dans 
     # etat des variables par année source
     df_items = pd.DataFrame()
-    etabli_correctif = pd.DataFrame()
+    uai_correctif = pd.DataFrame()
 
     ALL_RENTREES = list(range(2004, int(last_data_year)+1))
     for rentree in ALL_RENTREES:
@@ -37,12 +37,12 @@ def sise_read(path):
             df_items = pd.concat([df_items, tmp])
             del tmp
         
-        etabli_correctif = pd.concat([etabli_correctif, (df_all.groupby(['rentree', 'source', 'etabli', 'compos'])
+        uai_correctif = pd.concat([uai_correctif, (df_all.groupby(['rentree', 'source', 'etabli', 'compos'])
                .agg(effectif_tot=('effectif', 'sum'), count_rows=('effectif', 'size'))
                .reset_index())])
     print("- export completed sise_parquet")
 
     # creation d'un fichier pkl avec toutes les modalités par var pour contrôle
-    etabli_correctif.to_pickle(f"{path}output/frequency_etabli_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
+    uai_correctif.to_pickle(f"{path}output/frequency_uai_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
     df_items.mask(df_items=='', inplace=True)
     df_items.to_pickle(f"{path}output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})

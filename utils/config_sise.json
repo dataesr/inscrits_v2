@@ -106,7 +106,7 @@
     {
         "var_rgp":"ETABLISSEMENT",
         "var_sise":"compos",
-        "n_data":"N_BCE_SISE_N",
+        "n_data":"PAYSAGE_id",
         "format":"str",
         "missing_value":"",
         "empty":"NO"
@@ -422,4 +422,5 @@
         "format":"str",
         "missing_value":"-1",
         "empty":""
-    }]
+    }
+]

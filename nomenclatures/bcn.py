@@ -60,7 +60,7 @@ def bcn_complete():
     bcn1=bcn_harvest()
 
     variable_name = 'N_EXONERATIONS'
-    df=pd.DataFrame({'EXOINS':['A1', 'A2', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8'], 'EXOINS_LIBELLE':[
+    df=pd.DataFrame({'EXOINS':['A1', 'A2', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8'], 'LIBELLE_LONG':[
     "Etudiant français ou communautaire et EXONERATIONS D’ETABLISSEMENT (EXONERATIONS TOTALES)",
     "Etudiant étranger communautaire et EXONERATIONS BOURSES DU GOUVERNEMENT FRANÇAIS (EXONERATIONS TOTALES)",
     "Etudiant étranger extracommunautaire hors PERIMETRE D’APPLICATION DES DROITS MAJORES (doctorant ou inscrit en 2018-2019 ou inscrit en CPGE ou réfugié ou membre de famille de l’UE ou résident de longue durée ou résidence fiscale depuis plus de deux ans)",
@@ -74,7 +74,7 @@ def bcn_complete():
     bcn1[variable_name] = df
 
     variable_name = 'N_AMENA'
-    df=pd.DataFrame({'AMENA':['1', '2', '3', '4', '5', '6'], 'AMENA_LIBELLE':[
+    df=pd.DataFrame({'AMENA':['1', '2', '3', '4', '5', '6'], 'LIBELLE_LONG':[
     "CURSUS AMENAGE",
     "SEMESTRIALISATION",
     "CESURE",
@@ -84,25 +84,25 @@ def bcn_complete():
     bcn1[variable_name] = df
 
     variable_name = 'N_OPPOSITION'
-    df=pd.DataFrame({'OPPOS':['O', 'N'], 'OPPOS_LIBELLE':[
+    df=pd.DataFrame({'OPPOS':['O', 'N'], 'LIBELLE_LONG':[
     "Opposition à la diffusion des données",
     "Aucune opposition"]})
     bcn1[variable_name] = df
 
     variable_name = 'N_EFFECTIF'
-    df=pd.DataFrame({'EFFECTIF':[0, 1], 'EFFECTIF_LIBELLE':[
+    df=pd.DataFrame({'EFFECTIF':[0, 1], 'LIBELLE_LONG':[
     "Inscriptions secondaires",
     "Inscriptions principales"]})
     bcn1[variable_name] = df
 
     variable_name = 'N_MEEF'
-    df=pd.DataFrame({'FLAG_MEEF':['0', '1'], 'MEEF_LIBELLE':[
+    df=pd.DataFrame({'FLAG_MEEF':['0', '1'], 'LIBELLE_LONG':[
     "Autres",
     "Inscriptions en master MEEF et DU formation adaptée enseignement"]})
     bcn1[variable_name] = df
 
     variable_name = 'N_SUP'
-    df=pd.DataFrame({'FLAG_SUP':['0', '1'], 'SUP_LIBELLE':[
+    df=pd.DataFrame({'FLAG_SUP':['0', '1'], 'LIBELLE_LONG':[
     "Inscriptions validess",
     "Non valides"]})
     bcn1[variable_name] = df

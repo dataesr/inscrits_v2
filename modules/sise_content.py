@@ -32,7 +32,6 @@ def zip_content():
                 parquet_files.append(file_name.split('.')[0] )
 
         # Extraire la dernière année des données en utilisant le dernier élément de la série
-        # last_data_year = f'20{parquet_files.iloc[-1][-2:]}'
         last_data_year = get_most_recent_year(parquet_files)
 
     # Retourner la série et la dernière année des données
