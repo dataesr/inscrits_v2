@@ -65,3 +65,18 @@ def get_individual_source(source, rentree):
         df = pd.read_parquet(z.open(f'{filename}.parquet'), engine='pyarrow')
 
     return df
+
+def work_csv(df, file_csv_name):
+    from config_path import PATH
+    import os
+    PATH_WORK=f"{PATH}/work/"
+
+    if not os.path.exists(PATH_WORK):
+    # Créer le dossier
+        os.makedirs(PATH_WORK)
+        print(f"Le dossier a été créé à l'emplacement : {PATH_WORK}")
+    else:
+        print(f"Le dossier existe déjà à l'emplacement : {PATH_WORK}")
+
+    name = file_csv_name
+    return df.to_csv(f"{PATH_WORK}{name}.csv", sep=';', na_rep='', encoding='utf-8', index=False)
