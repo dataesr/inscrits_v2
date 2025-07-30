@@ -9,7 +9,7 @@ if INITIALISATION == True:
     sise_config()
     get_all_correctifs_from_google()
     bcn_complete()
-    get_paysageODS("fr-esr-paysage_structures_identifiants")
+    get_paysageODS("fr-esr-paysage_structures_identifiants", "paysage_id")
     
     sise_read(PATH)
 
