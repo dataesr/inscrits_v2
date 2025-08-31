@@ -14,9 +14,9 @@ if INITIALISATION == True:
 
 
 # # chargement des nomenclatures
-# CORRECTIFS_dict = nomenclatures_load('google_sheet')
-# BCN = nomenclatures_load('bcn')
-# PAYSAGE_id = nomenclatures_load('paysage_id') 
+# CORRECTIFS_dict = reference_data_loader('google_sheet')
+# BCN = reference_data_loader('bcn')
+# PAYSAGE_id = reference_data_loader('paysage_id') 
 
 # STEP 2
 last_data_year = last_year_into_zip(f"{PATH}output/")

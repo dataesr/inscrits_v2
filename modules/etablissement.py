@@ -1,11 +1,11 @@
-from reference_data.ref_data_utils import nomenclatures_load
+from reference_data.ref_data_utils import reference_data_loader
 from config_path import PATH
 import pandas as pd, json, numpy as np, pyreadstat
 
 global CORRECTIFS_dict, BCN, PAYSAGE_id
-CORRECTIFS_dict = nomenclatures_load('google_sheet')
-BCN = nomenclatures_load('bcn')
-PAYSAGE_id = nomenclatures_load('paysage_id')
+CORRECTIFS_dict = reference_data_loader('google_sheet')
+BCN = reference_data_loader('bcn')
+PAYSAGE_id = reference_data_loader('paysage_id')
 
 
 def etabli_meef(year):

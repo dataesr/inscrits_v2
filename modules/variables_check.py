@@ -1,12 +1,12 @@
 from reference_data.bcn import *
 from reference_data.google_sheet import *
-from reference_data.ref_data_utils import nomenclatures_load
+from reference_data.ref_data_utils import reference_data_loader
 from config_path import PATH
 import pandas as pd, json, numpy as np
 
 global CORRECTIFS_dict, BCN, PAYSAGE_id
-CORRECTIFS_dict = nomenclatures_load('google_sheet')
-BCN = nomenclatures_load('bcn')
+CORRECTIFS_dict = reference_data_loader('google_sheet')
+BCN = reference_data_loader('bcn')
 
 
 def vars_sise_to_be_check(year):
