@@ -1,3 +1,5 @@
+from config_path import PATH
+global CORRECTIFS_dict, BCN, PAYSAGE_id
 
 def vars_no_empty(df):
     import json
@@ -38,12 +40,7 @@ def vars_no_empty(df):
 
 
 
-
-
-
-
-
-def data_cleansing(last_data_year, rentree):
+def data_cleansing(last_data_year, rentree, meef):
     from config_path import PATH
     import pandas as pd, zipfile
     
@@ -53,10 +50,11 @@ def data_cleansing(last_data_year, rentree):
         df = pd.read_parquet(z.open(f'sise{str(rentree)[:2]}.parquet'), engine='pyarrow')
     
 
-    
+    # ETABLI_DIFFUSION
+    df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
+
 
 
 
     return df
 
-df=data_cleansing(2024, 2024)
