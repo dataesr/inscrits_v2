@@ -1,4 +1,4 @@
-from nomenclatures.nomenclatures import nomenclatures_load
+from reference_data.ref_data_utils import nomenclatures_load
 from config_path import PATH
 import pandas as pd, json, numpy as np, pyreadstat
 
@@ -9,7 +9,7 @@ PAYSAGE_id = nomenclatures_load('paysage_id')
 
 
 def etabli_meef(year):
-    from nomenclatures.nomenclatures import lookup_table
+    from reference_data.ref_data_utils import lookup_table
     meef = pd.read_pickle(f"{PATH}output/meef_frequency_source_year{year}.pkl",compression= 'gzip')
 
     # create new_lib with correction etabli_diffusion normandie nouvelle caledonie

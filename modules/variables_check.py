@@ -1,6 +1,6 @@
-from nomenclatures.bcn import *
-from nomenclatures.google_sheet import *
-from nomenclatures.nomenclatures import nomenclatures_load
+from reference_data.bcn import *
+from reference_data.google_sheet import *
+from reference_data.ref_data_utils import nomenclatures_load
 from config_path import PATH
 import pandas as pd, json, numpy as np
 
