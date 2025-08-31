@@ -1,5 +1,5 @@
 def sise_read(path):
-    import pandas as pd
+    import pandas as pd, numpy as np
     from modules.sise_content import zip_content, src_load, data_save, vars_init
     from utils.functions_shared import get_sources
     
@@ -14,6 +14,7 @@ def sise_read(path):
     # etat des variables par année source
     df_items = pd.DataFrame()
     uai_correctif = pd.DataFrame()
+    meef = pd.DataFrame()
 
     ALL_RENTREES = list(range(2004, int(last_data_year)+1))
     for rentree in ALL_RENTREES:
@@ -40,9 +41,17 @@ def sise_read(path):
         uai_correctif = pd.concat([uai_correctif, (df_all.groupby(['rentree', 'source', 'etabli', 'compos'])
                .agg(effectif_tot=('effectif', 'sum'), count_rows=('effectif', 'size'))
                .reset_index())])
+        
+        if 'etabli_diffusion' in df_all.columns or 'flag_meef' in df_all.columns:
+            meef = pd.concat([meef, df_all.loc[~df_all.etabli_diffusion.isnull(), ['rentree', 'source', 'etabli', 'etabli_diffusion', 'flag_meef', 'typ_dipl', 'diplom', 'effectif']]])
     print("- export completed sise_parquet")
 
     # creation d'un fichier pkl avec toutes les modalités par var pour contrôle
-    uai_correctif.to_pickle(f"{path}output/frequency_uai_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
+    meef.loc[meef.flag_meef=='1', ['typ_dipl', 'diplom']] = np.nan
+    (meef.groupby(['rentree', 'source', 'etabli', 'etabli_diffusion', 'flag_meef', 'typ_dipl', 'diplom'], dropna=False)
+        .agg(effectif_tot=('effectif', 'sum'), count_rows=('effectif', 'size'))
+        .reset_index()
+        .to_pickle(f"{path}output/meef_frequency_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1}))
+    uai_correctif.to_pickle(f"{path}output/uai_frequency_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
     df_items.mask(df_items=='', inplace=True)
     df_items.to_pickle(f"{path}output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
