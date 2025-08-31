@@ -5,6 +5,9 @@ warnings.simplefilter("ignore")
 INITIALISATION = False
 
 if INITIALISATION == True:
+
+    sise_read(PATH)
+
     # read sise file, select vars, create of excel files to check data, save concatenate data into parquet file per year
     sise_config()
     get_all_correctifs_from_google()
@@ -21,8 +24,12 @@ if INITIALISATION == True:
 # STEP 2
 last_data_year = last_year_into_zip(f"{PATH}output/")
 
-vars_sise_to_be_check(last_data_year)
+rattach = rattach_init(last_data_year)
 meef = etabli_meef(last_data_year)
+
+
+vars_sise_to_be_check(last_data_year)
+
 
 
 

@@ -16,3 +16,4 @@ from modules.variables_check import *
 from utils.functions_shared import *
 from modules.etablissement import *
 from modules.cleansing import *
+from modules.rattach_initialisation import *
