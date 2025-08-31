@@ -82,7 +82,7 @@ def src_load(filename, source, rentree):
     CONF=json.load(open('utils/config_sise.json', 'r'))
 
     # list columns and lowercase name, create vars RENTREE/SOURCE
-    df_vars = df[df.columns[df.columns.str.lower().isin([conf.get('var_sise') for conf in CONF])]]
+    df_vars = df[df.columns[df.columns.str.lower().isin([conf.get('var_sise') for conf in CONF if conf.get('var_sise')])]]
     df_vars.columns = df_vars.columns.str.lower()
     df_vars = df_vars.assign(rentree=rentree, source=source)
     return df_vars
