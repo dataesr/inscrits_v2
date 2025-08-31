@@ -42,18 +42,6 @@ def last_year_into_zip(path):
     return year
 
 
-def nomenclatures_load(nomen):
-    if nomen.lower()=='bcn':
-        from nomenclatures.bcn import get_all_bcn
-        return get_all_bcn()
-    if nomen.lower().startswith('paysage'):
-        from nomenclatures.paysage import get_paysage
-        return get_paysage(nomen)
-    if nomen.lower()=='google_sheet':
-        from nomenclatures.google_sheet import get_all_correctifs
-        return get_all_correctifs()
-
-
 def get_individual_source(source, rentree):
     import pandas as pd, zipfile
 
