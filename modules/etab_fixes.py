@@ -44,7 +44,6 @@ def rattach_fix(year):
             json.dump(rattach_patch, f, indent=4)
 
 
-
 def etabli_meef(year):
     from reference_data.ref_data_utils import lookup_table
     meef = pd.read_pickle(f"{PATH}output/meef_frequency_source_year{year}.pkl",compression= 'gzip')
