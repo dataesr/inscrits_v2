@@ -41,9 +41,7 @@ def sise_read(path):
             df_items = pd.concat([df_items, tmp])
             del tmp
         
-        uai_correctif = pd.concat([uai_correctif, (df_all.groupby(['rentree', 'source', 'etabli', 'compos'])
-               .agg(effectif_tot=('effectif', 'sum'), count_rows=('effectif', 'size'))
-               .reset_index())])
+        uai_correctif = pd.concat([uai_correctif, df_all.groupby[['rentree', 'source', 'etabli', 'compos', 'rattach']]])
         
         if 'etabli_diffusion' in df_all.columns or 'flag_meef' in df_all.columns:
             meef = pd.concat([meef, df_all.loc[~df_all.etabli_diffusion.isnull(), ['rentree', 'source', 'etabli', 'etabli_diffusion', 'flag_meef', 'typ_dipl', 'diplom', 'effectif']]])
@@ -55,6 +53,11 @@ def sise_read(path):
         .agg(effectif_tot=('effectif', 'sum'), count_rows=('effectif', 'size'))
         .reset_index()
         .to_pickle(f"{path}output/meef_frequency_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1}))
-    uai_correctif.to_pickle(f"{path}output/uai_frequency_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
+    
+    (uai_correctif.groupby(['rentree', 'source', 'etabli', 'compos', 'rattach'], dropna=False)
+               .agg(effectif_tot=('effectif', 'sum'), count_rows=('effectif', 'size'))
+               .reset_index()
+               .to_pickle(f"{path}output/uai_frequency_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1}))
+    
     df_items.mask(df_items=='', inplace=True)
     df_items.to_pickle(f"{path}output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
