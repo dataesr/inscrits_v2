@@ -8,6 +8,43 @@ BCN = reference_data_loader('bcn')
 PAYSAGE_id = reference_data_loader('paysage_id')
 
 
+
+def rattach_fix(year):
+    rattach_df = pd.read_pickle(f"{PATH}output/uai_frequency_source_year{year}.pkl",compression= 'gzip')
+    rattach_df = rattach_df[['rentree', 'source', 'etabli', 'compos', 'rattach']]
+
+    rattach_patch=json.load(open('patches/rattach_patch.json', 'r'))
+    mapping = (
+        pd.DataFrame([
+            {"rentree": int(rentree), "compos": compos, 'rattach':rattach}
+            for rentree, dico in rattach_patch.items()
+            for compos, rattach in dico.items()
+        ])
+    )
+    # corrections rattachements vides
+    rattach_df = rattach_df.merge(mapping, how='left', on=["rentree", "compos"], suffixes=('', '_y'))
+    rattach_df.loc[(rattach_df['rattach'].isna()) | (rattach_df['rattach'] == ''), 'rattach'] = rattach_df.loc[(rattach_df['rattach'].isna()) | (rattach_df['rattach'] == ''), 'rattach_y']
+
+    rattach_null = rattach_df[rattach_df['rattach'].isna() | (rattach_df['rattach'] == '')]
+    if len(rattach_null)>0:
+        print(f"- après maj RATTACH il en manque encore ; compléter le dict patches/rattach_patch.json:\n{rattach_null}")
+        tmp=(
+                rattach_null.groupby("rentree")
+                .apply(lambda x: dict(zip(x["compos"], x["rattach"])))
+                .to_dict()
+            )
+        for annee, valeurs in tmp.items():
+            if str(annee) in rattach_patch:
+                rattach_patch[str(annee)].update(valeurs)
+            else:
+                rattach_patch[str(annee)] = valeurs
+
+        # Écrire le résultat dans le fichier
+        with open('rattach_patch.json', 'w') as f:
+            json.dump(rattach_patch, f, indent=4)
+
+
+
 def etabli_meef(year):
     from reference_data.ref_data_utils import lookup_table
     meef = pd.read_pickle(f"{PATH}output/meef_frequency_source_year{year}.pkl",compression= 'gzip')
@@ -46,61 +83,6 @@ def etabli_meef(year):
         meef_null.to_csv(f"{PATH}work/meef_null.csv", sep=";", index=False)
         print("- ATTENTION ! il manque des etabli_diffusion dans la googleshit ; vérifier dans work/meef_null")
     return meef
-
-
-def verifier_code_uai_safe(code_uai):
-    alphabet_23 = ["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-    
-    if isinstance(code_uai, str):
-        code_uai_propre = code_uai.strip().lower()
-    else:
-        print(code_uai)
-        
-    # Vérifier si les 7 premiers caractères sont numériques
-    if len(code_uai_propre) < 8 or not code_uai_propre[:7].isdigit():
-        return False
-    
-    code_uai_propre_chiffres = code_uai_propre[:7]
-    code_uai_propre_lettre = code_uai_propre[7:8]
-    
-    try:
-        rang_calcule = int(code_uai_propre_chiffres) % 23
-        lettre_calculee = alphabet_23[rang_calcule]
-        return code_uai_propre_lettre == lettre_calculee
-    except ValueError:
-        return False
-class CustomInterrupt(Exception):
-    pass
-
-
-def etab_in_bcn():
-    N_BCE_SISE_N = BCN['N_BCE_SISE_N']
-    N_BCE_SISE_N[["NUMERO_UAI","LIBELLE_LONG_NATURE_UAI"]]
-    N_BCE_SISE_N["compos"]=N_BCE_SISE_N["NUMERO_UAI"]
-    N_BCE_SISE_N["rattach"]=N_BCE_SISE_N["NUMERO_UAI"]
-    N_BCE_SISE_N["etabli"]=N_BCE_SISE_N["NUMERO_UAI"]
-    N_BCE_SISE_N["lib_compos"]=N_BCE_SISE_N["APPELLATION_OFFICIELLE_UAI"]
-    N_BCE_SISE_N["lib_rattach"]=N_BCE_SISE_N["APPELLATION_OFFICIELLE_UAI"]
-    N_BCE_SISE_N["lib_etabli"]=N_BCE_SISE_N["APPELLATION_OFFICIELLE_UAI"]
-    return N_BCE_SISE_N
-
-def rattach():
-    data_rattach = []
-    for rentree in range(2001, 2023):
-        # lecture format
-        df_format, meta_format = pyreadstat.read_sas7bcat(f'format/inscri{str(rentree)[2:4]}/formats.sas7bcat',
-                                                        encoding='iso-8859-1')
-        for compos in meta_format.value_labels['$RATTACH']:
-            rattach = meta_format.value_labels['$RATTACH'][compos]
-            data_rattach.append({'rentree': rentree, 'compos': compos, 'rattach': rattach})
-    for rentree in range(2023, 2025):
-        df = pd.read_parquet(f'format/inscri{str(rentree)[2:4]}/bce_a24.parquet')
-        for index, row in df.iterrows():
-            data_rattach.append({'rentree': rentree, 'compos': row['numero_uai'], 'rattach': row['composante_rattachement']})
-    df_rattach = pd.DataFrame(data_rattach)
-    df_rattach[df_rattach['rattach'].isna() | (df_rattach['rattach'] == '')]
-
-    return df_rattach
 
 
 
