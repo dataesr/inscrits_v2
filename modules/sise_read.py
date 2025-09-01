@@ -1,6 +1,6 @@
 def sise_read(path):
     import pandas as pd, numpy as np
-    from modules.sise_content import zip_content, src_load, data_save, vars_init
+    from modules.sise_content import zip_content, src_load, data_save, vars_init, rattach_init
     from utils.functions_shared import get_sources
     
 
@@ -30,6 +30,9 @@ def sise_read(path):
             df_all = pd.concat([df_all, df], ignore_index=True)
             
         df_all = vars_init(df_all)
+
+        rattach = rattach_init(rentree)
+        df_all = df_all.merge(rattach, how='left', on=['rentree', 'compos'])
 
         # sauvegarde dans output d'un sise complet par année au format parquet
         data_save(rentree, df_all, last_data_year)
