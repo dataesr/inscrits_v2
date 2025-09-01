@@ -47,35 +47,21 @@ def etab_in_bcn():
     return N_BCE_SISE_N
 
 
-def rattach_init(year):
-    PATH_FORMAT=f"{PATH}format/"
-    data_rattach = []
-    for rentree in range(2001, 2023):
-        # lecture format
-        df_format, meta_format = pyreadstat.read_sas7bcat(f'{PATH_FORMAT}inscri{str(rentree)[2:4]}/formats.sas7bcat',
-                                                        encoding='iso-8859-1')
-        for compos in meta_format.value_labels['$RATTACH']:
-            rattach = meta_format.value_labels['$RATTACH'][compos]
-            data_rattach.append({'rentree': rentree, 'compos': compos, 'rattach': rattach})
-    for rentree in range(2023, int(year)+1):
-        df = pd.read_parquet(f'{PATH_FORMAT}inscri{str(rentree)[2:4]}/bce_a24.parquet', engine='pyarrow')
-        for index, row in df.iterrows():
-            data_rattach.append({'rentree': rentree, 'compos': row['numero_uai'], 'rattach': row['composante_rattachement']})
-    df_rattach = pd.DataFrame(data_rattach)
 
-    mapping = (
-        pd.DataFrame([
-            {"rentree": int(rentree), "compos": compos, 'rattach':rattach}
-            for rentree, dico in json.load(open('patches/rattach_patch.json', 'r')).items()
-            for compos, rattach in dico.items()
-        ])
-    )
-    # corrections rattachements vides
-    df_rattach = df_rattach.merge(mapping, how='left', on=["rentree", "compos"], suffixes=('', '_y'))
-    df_rattach.loc[(df_rattach['rattach'].isna()) | (df_rattach['rattach'] == ''), 'rattach'] = df_rattach.loc[(df_rattach['rattach'].isna()) | (df_rattach['rattach'] == ''), 'rattach_y']
 
-    if len(df_rattach[df_rattach['rattach'].isna() | (df_rattach['rattach'] == '')])>0:
-        print(f"- après maj RATTACH manquant:\n{df_rattach[df_rattach['rattach'].isna() | (df_rattach['rattach'] == '')]}")
+    # mapping = (
+    #     pd.DataFrame([
+    #         {"rentree": int(rentree), "compos": compos, 'rattach':rattach}
+    #         for rentree, dico in json.load(open('patches/rattach_patch.json', 'r')).items()
+    #         for compos, rattach in dico.items()
+    #     ])
+    # )
+    # # corrections rattachements vides
+    # df_rattach = df_rattach.merge(mapping, how='left', on=["rentree", "compos"], suffixes=('', '_y'))
+    # df_rattach.loc[(df_rattach['rattach'].isna()) | (df_rattach['rattach'] == ''), 'rattach'] = df_rattach.loc[(df_rattach['rattach'].isna()) | (df_rattach['rattach'] == ''), 'rattach_y']
+
+    # if len(df_rattach[df_rattach['rattach'].isna() | (df_rattach['rattach'] == '')])>0:
+    #     print(f"- après maj RATTACH manquant:\n{df_rattach[df_rattach['rattach'].isna() | (df_rattach['rattach'] == '')]}")
 
 
     # df_rattach.loc[len(df_rattach)] = [2009,'0383412C','0383412C']

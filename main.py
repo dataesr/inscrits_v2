@@ -31,8 +31,6 @@ meef = etabli_meef(last_data_year)
 vars_sise_to_be_check(last_data_year)
 
 
-
-
 df=data_cleansing(2024, 2024, meef)
 # si besoin de vérifier une source spécifique sans traitement
 # df=get_individual_source('mana', '2013')

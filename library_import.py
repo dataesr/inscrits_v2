@@ -14,6 +14,6 @@ from reference_data.ref_data_utils import *
 from utils.config_sise import *
 from modules.variables_check import *
 from utils.functions_shared import *
-from modules.etablissement import *
+from modules.etab_fixes import *
 from modules.cleansing import *
-from modules.rattach_initialisation import *
+
