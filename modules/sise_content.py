@@ -3,8 +3,6 @@ import pandas as pd, zipfile, os, json
 import pyarrow as pa
 from pyarrow.parquet import ParquetFile
 
-
-
 def get_most_recent_year(items):
     # Extraire les années potentielles et les convertir en entiers
     years = []
@@ -87,6 +85,25 @@ def src_load(filename, source, rentree):
     df_vars = df_vars.assign(rentree=rentree, source=source)
     return df_vars
 
+def rattach_init(rentree):
+    import pyreadstat
+    from config_path import PATH
+    PATH_FORMAT=f"{PATH}format/"
+    data_rattach = []
+    if rentree in range(2001, 2023):
+        # lecture format
+        df_format, meta_format = pyreadstat.read_sas7bcat(f'{PATH_FORMAT}inscri{str(rentree)[2:4]}/formats.sas7bcat',
+                                                        encoding='iso-8859-1')
+        for compos in meta_format.value_labels['$RATTACH']:
+            rattach = meta_format.value_labels['$RATTACH'][compos]
+            data_rattach.append({'rentree': rentree, 'compos': compos, 'rattach': rattach})
+    if rentree in range(2023, int(rentree)+1):
+        df = pd.read_parquet(f'{PATH_FORMAT}inscri{str(rentree)[2:4]}/bce_a24.parquet', engine='pyarrow')
+        for index, row in df.iterrows():
+            data_rattach.append({'rentree': rentree, 'compos': row['numero_uai'], 'rattach': row['composante_rattachement']})
+    df_rattach = pd.DataFrame(data_rattach)
+
+    return df_rattach
 
 def data_save(rentree, df_all, last_data_year):
     from config_path import PATH
