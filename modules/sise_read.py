@@ -30,7 +30,6 @@ def sise_read(path):
             df_all = pd.concat([df_all, df], ignore_index=True)
             
         df_all = vars_init(df_all)
-
         rattach = rattach_init(rentree)
         df_all = df_all.merge(rattach, how='left', on=['rentree', 'compos'])
 
@@ -41,7 +40,7 @@ def sise_read(path):
             df_items = pd.concat([df_items, tmp])
             del tmp
         
-        uai_correctif = pd.concat([uai_correctif, df_all[['rentree', 'source', 'etabli', 'compos', 'rattach']]])
+        uai_correctif = pd.concat([uai_correctif, df_all[['rentree', 'source', 'etabli', 'compos', 'rattach', 'effectif']]])
         
         if 'etabli_diffusion' in df_all.columns or 'flag_meef' in df_all.columns:
             meef = pd.concat([meef, df_all.loc[~df_all.etabli_diffusion.isnull(), ['rentree', 'source', 'etabli', 'etabli_diffusion', 'flag_meef', 'typ_dipl', 'diplom', 'effectif']]])
