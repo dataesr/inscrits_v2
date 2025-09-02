@@ -8,22 +8,74 @@ BCN = reference_data_loader('bcn')
 PAYSAGE_id = reference_data_loader('paysage_id')
 
 
+def uai_fixing(df):
+    uai_fix=json.load(open('patches/uai_fixes.json', 'r'))
+    df['compos_new'] = None
+    df['etabli_new'] = None
 
-def rattach_fix(year):
+    # Appliquer les corrections
+    for annee, fixes in uai_fix.items():
+        annee_int = int(annee)
+        for fix in fixes:
+            if 'compos' in fix:
+                mask_compos = (df['rentree'] == annee_int) & (df['compos'] == fix['compos'])
+                df.loc[mask_compos, 'compos_new'] = fix['compos_new']
+                df.loc[mask_compos, 'rattach'] = np.nan
+            if 'etabli' in fix:
+                mask_etabli = (df['rentree'] == annee_int) & (df['etabli'] == fix['etabli'])
+                df.loc[mask_etabli, 'etabli_new'] = fix['etabli_new']
+    return df
+
+
+def code_uai_safe_checking(code_uai):
+    alphabet_23 = ["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+    
+    if isinstance(code_uai, str):
+        code_uai_propre = code_uai.strip().lower()
+    else:
+        print(code_uai)
+        
+    # Vérifier si les 7 premiers caractères sont numériques
+    if len(code_uai_propre) < 8 or not code_uai_propre[:7].isdigit():
+        return False
+    
+    code_uai_propre_chiffres = code_uai_propre[:7]
+    code_uai_propre_lettre = code_uai_propre[7:8]
+    
+    try:
+        rang_calcule = int(code_uai_propre_chiffres) % 23
+        lettre_calculee = alphabet_23[rang_calcule]
+        return code_uai_propre_lettre == lettre_calculee
+    except ValueError:
+        return False
+class CustomInterrupt(Exception):
+    pass
+
+
+def rattach_fixing(year):
     rattach_df = pd.read_pickle(f"{PATH}output/uai_frequency_source_year{year}.pkl",compression= 'gzip')
     rattach_df = rattach_df[['rentree', 'source', 'etabli', 'compos', 'rattach']]
+
+    rattach_df = uai_fixing(rattach_df)
+    for i in ['etabli', 'compos']:
+        rattach_df.loc[rattach_df[f"{i}_new"].isnull(), f"{i}_new"] = rattach_df.loc[rattach_df[f"{i}_new"].isnull(), i]
+
+    rattach_df['etabli_valide'] = rattach_df['etabli_new'].apply(code_uai_safe_checking)
+    rattach_df['compos_valide'] = rattach_df['compos_new'].apply(code_uai_safe_checking)
+
 
     rattach_patch=json.load(open('patches/rattach_patch.json', 'r'))
     mapping = (
         pd.DataFrame([
-            {"rentree": int(rentree), "compos": compos, 'rattach':rattach}
+            {"rentree": int(rentree), "compos_new": compos, 'rattach':rattach}
             for rentree, dico in rattach_patch.items()
             for compos, rattach in dico.items()
         ])
     )
     # corrections rattachements vides
-    rattach_df = rattach_df.merge(mapping, how='left', on=["rentree", "compos"], suffixes=('', '_y'))
+    rattach_df = rattach_df.merge(mapping, how='left', on=["rentree", "compos_new"], suffixes=('', '_y'))
     rattach_df.loc[(rattach_df['rattach'].isna()) | (rattach_df['rattach'] == ''), 'rattach'] = rattach_df.loc[(rattach_df['rattach'].isna()) | (rattach_df['rattach'] == ''), 'rattach_y']
+    rattach_df.drop(columns='rattach_y', inplace=True)
 
     rattach_null = rattach_df[rattach_df['rattach'].isna() | (rattach_df['rattach'] == '')]
     if len(rattach_null)>0:
