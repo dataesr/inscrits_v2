@@ -33,7 +33,7 @@ vars_sise_to_be_check(last_data_year)
 
 df=data_cleansing(2024, 2024, meef)
 # si besoin de vérifier une source spécifique sans traitement
-# df=get_individual_source('mana', '2013')
+# df=get_individual_source('inge', '2016')
 # from test_py import work_csv
 # work_csv(x, 'vars_hs_nomen')
 
