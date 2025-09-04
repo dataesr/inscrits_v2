@@ -38,23 +38,36 @@ def vars_no_empty(df):
     except ValueError:
             print(f"### {[str(x).isdigit() and x != 0 for x in liste_entiers]}")
 
+    return df
 
 
-def data_cleansing(last_data_year, rentree, meef):
+def data_cleansing(last_data_year, rentree, etab, meef):
     from config_path import PATH
     import pandas as pd, zipfile
-    
-
 
     with zipfile.ZipFile(f"{PATH}output/sise_parquet_{last_data_year}.zip", 'r') as z:
-        df = pd.read_parquet(z.open(f'sise{str(rentree)[:2]}.parquet'), engine='pyarrow')
-    
+        df = pd.read_parquet(z.open(f'sise{str(rentree)[2:4]}.parquet'), engine='pyarrow')
+
+    print(f"- {rentree} -> size: {len(df)}")
+
+    # ETABLI & COMPOS & RATTACH
+    if 'rattach' in df.columns:
+        df = df.drop(columns='rattach')
+    if 'etabli' in df.columns and 'compos' in df.columns:
+        df = df.rename(columns={'etabli':'etabli_old', 'compos':'compos_old'})
+        df = (df.merge(etab[['rentree', 'etabli_old', 'etabli', 'compos_old', 'compos', 'rattach']], 
+                    how='left', on=['rentree', 'etabli_old', 'compos_old'])
+            )
+    df = df.loc[:, ~df.columns.str.contains('_old')]
 
     # ETABLI_DIFFUSION
-    df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
+    try:
+        df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
+    except KeyError:
+        return print(f'no etabli_diffusion into sise {rentree}')
 
+    df = vars_no_empty(df)
 
-
-
+    
     return df
 
