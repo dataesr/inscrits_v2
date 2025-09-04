@@ -24,7 +24,7 @@ if INITIALISATION == True:
 # STEP 2
 last_data_year = last_year_into_zip(f"{PATH}output/")
 
-rattach = rattach_init(last_data_year)
+etab = etab_update(last_data_year)
 meef = etabli_meef(last_data_year)
 
 

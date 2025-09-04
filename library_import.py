@@ -14,6 +14,6 @@ from reference_data.ref_data_utils import *
 from utils.config_sise import *
 from modules.variables_check import *
 from utils.functions_shared import *
-from modules.etab_fixing import *
+from modules.etab_cleaner import *
 from modules.cleansing import *
 
