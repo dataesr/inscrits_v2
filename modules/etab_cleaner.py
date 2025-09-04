@@ -17,15 +17,12 @@ def uai_fixing(df):
     for annee, fixes in uai_fix.items():
         annee_int = int(annee)
         for fix in fixes:
-            if 'compos' in fix:
-                mask_compos = (df['rentree'] == annee_int) & (df['compos'] == fix['compos'])
-                df.loc[mask_compos, 'compos_new'] = fix['compos_new']
-                df.loc[mask_compos, 'rattach'] = np.nan
-            if 'etabli' in fix:
-                mask_etabli = (df['rentree'] == annee_int) & (df['etabli'] == fix['etabli'])
-                df.loc[mask_etabli, 'etabli_new'] = fix['etabli_new']
+            vin = list(fix.keys())[0]
+            vout = list(fix.keys())[1]
+            mask = (df['rentree'] == annee_int) & (df[vin] == fix[vin])
+            df.loc[mask, vout] = fix[vout]
+            df.loc[mask, 'rattach'] = np.nan
     return df
-
 
 def code_uai_safe_checking(code_uai):
     alphabet_23 = ["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -56,14 +53,48 @@ def rattach_fixing(year):
     rattach_df = pd.read_pickle(f"{PATH}output/uai_frequency_source_year{year}.pkl",compression= 'gzip')
     rattach_df = rattach_df[['rentree', 'source', 'etabli', 'compos', 'rattach']]
 
+    # COMPOS empty
+    if len(rattach_df.loc[rattach_df.compos.isnull()])>0:
+        empty = json.load(open('patches/compos_empty.json', 'r'))
+        mapping = (
+                pd.DataFrame([
+                {"rentree": int(rentree), "etabli": etabli, 'compos':compos}
+                for rentree, dico in empty.items()
+                for etabli, compos in dico.items()
+                ])
+            )
+        
+        rattach_df = rattach_df.merge(mapping, how='left', on=["rentree", "etabli"], suffixes=('', '_y'))
+        rattach_df.loc[(rattach_df['compos'].isna()) | (rattach_df['compos'] == ''), 'compos'] = rattach_df.loc[(rattach_df['compos'].isna()) | (rattach_df['compos'] == ''), 'compos_y']
+        rattach_df.drop(columns='compos_y', inplace=True)
+        
+        rattach_null = rattach_df.loc[(rattach_df['compos'].isna()) | (rattach_df['compos'] == '')]
+        if len(rattach_null)>0:
+            print(f"- après maj RATTACH il en manque encore ; compléter le dict patches/rattach_patch.json:\n{rattach_null}")
+            tmp=(
+                    rattach_null.groupby("rentree")
+                    .apply(lambda x: dict(zip(x["etabli"], x["compos"])))
+                    .to_dict()
+                )
+            for annee, valeurs in tmp.items():
+                if str(annee) in empty:
+                    empty[str(annee)].update(valeurs)
+                else:
+                    empty[str(annee)] = valeurs
+
+            # Écrire le résultat dans le fichier
+            with open('compos_empty.json', 'w') as f:
+                json.dump(empty, f, indent=4)
+
+    # UAI wrong
     rattach_df = uai_fixing(rattach_df)
     for i in ['etabli', 'compos']:
         rattach_df.loc[rattach_df[f"{i}_new"].isnull(), f"{i}_new"] = rattach_df.loc[rattach_df[f"{i}_new"].isnull(), i]
 
-    rattach_df['etabli_valide'] = rattach_df['etabli_new'].apply(code_uai_safe_checking)
-    rattach_df['compos_valide'] = rattach_df['compos_new'].apply(code_uai_safe_checking)
+    # rattach_df['etabli_valide'] = rattach_df['etabli_new'].apply(code_uai_safe_checking)
+    # rattach_df['compos_valide'] = rattach_df['compos_new'].apply(code_uai_safe_checking)
 
-
+    # RATTACH empty
     rattach_patch=json.load(open('patches/rattach_patch.json', 'r'))
     mapping = (
         pd.DataFrame([
@@ -82,7 +113,7 @@ def rattach_fixing(year):
         print(f"- après maj RATTACH il en manque encore ; compléter le dict patches/rattach_patch.json:\n{rattach_null}")
         tmp=(
                 rattach_null.groupby("rentree")
-                .apply(lambda x: dict(zip(x["compos"], x["rattach"])))
+                .apply(lambda x: dict(zip(x["compos_new"], x["rattach"])))
                 .to_dict()
             )
         for annee, valeurs in tmp.items():
@@ -92,7 +123,7 @@ def rattach_fixing(year):
                 rattach_patch[str(annee)] = valeurs
 
         # Écrire le résultat dans le fichier
-        with open('rattach_patch.json', 'w') as f:
+        with open('patches/rattach_patch.json', 'w') as f:
             json.dump(rattach_patch, f, indent=4)
 
 
