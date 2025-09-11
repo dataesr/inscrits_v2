@@ -1,11 +1,7 @@
-from reference_data.ref_data_utils import reference_data_loader
+from reference_data.ref_data_utils import CORRECTIFS_dict, BCN
 from config_path import PATH
 import pandas as pd, json, numpy as np
 
-global CORRECTIFS_dict, BCN, PAYSAGE_id
-CORRECTIFS_dict = reference_data_loader('google_sheet')
-BCN = reference_data_loader('bcn')
-PAYSAGE_id = reference_data_loader('paysage_id')
 
 def uai_bcn():
     b=BCN['N_BCE_SISE_N']
@@ -156,12 +152,11 @@ def etab_update(year):
 
     # check uai validity
     etab = uai_invalid_fix(etab)
-
+    print(f"- size ETAB after uai_invalid: {len(etab)}")
     return etab
 
 
 def etabli_meef(year):
-    from reference_data.ref_data_utils import lookup_table
     meef = pd.read_pickle(f"{PATH}output/meef_frequency_source_year{year}.pkl",compression= 'gzip')
 
     # create new_lib with correction etabli_diffusion normandie nouvelle caledonie
@@ -175,12 +170,13 @@ def etabli_meef(year):
             return row['etabli_diffusion']
         
     meef['new_lib'] = meef.apply(fix, axis=1)
-  
+    print(f"- size ETAB after meef process: {len(meef)}")
+
     # keep only inspe espe and add id_paysage (id_paysage_formens)
     meef = meef.loc[(meef.flag_meef=='1')&(meef.new_lib.str.lower().str.startswith(('inspe', 'espe'), na=False))]
     meef_paysage = CORRECTIFS_dict['ETABLI_DIFFUSION_ID']
     mapping = {
-    item['IN']: item['OUT']
+    item['in']: item['out']
     for item in meef_paysage
     }
     def add_paysage_id(row):
@@ -200,36 +196,34 @@ def etabli_meef(year):
     return meef
 
 
+def rattach_single_add(compos_uai, rattach_uai, range_years):
 
+    tmp=(
+        {
+            str(annee): {compos_uai: rattach_uai}
+            for annee in range_years
+        }
+    )
 
+    print(tmp)
 
+    map_dict = json.load(open("patches/rattach_patch.json", 'r'))
 
+    for annee, d in tmp.items():
+        if annee in map_dict:
+            # Récupérer le premier élément (clé) de d
+            premiere_cle = next(iter(d))
+            if premiere_cle in map_dict[annee]:
+                # Mettre à jour la valeur si la clé existe
+                map_dict[annee][premiere_cle] = d[premiere_cle]
+            else:
+                # Ajouter le dictionnaire si la clé n'existe pas
+                map_dict[annee].update(d)
+        else:
+            # Ajouter l'année et le dictionnaire si l'année n'existe pas
+            map_dict[annee] = d
+    
+    map_dict_trie = {annee: map_dict[annee] for annee in sorted(map_dict.keys(), key=int)}
 
-
-
-
-# def uai_paysage(df, var):
-#     x=(df.merge(pd.DataFrame(PAYSAGE_id)[['id_value', 'id_paysage', 'active','id_enddate']], 
-#                 how='left', left_on=var, right_on='id_value')
-#         .drop_duplicates()
-#         .merge(BCN['N_BCE_SISE_N'][['numero_uai', 'denomination_principale_uai']].drop_duplicates(), 
-#                how='left', left_on=var, right_on='numero_uai'))
-
-#     x=x.assign(paysage_presence=np.where(x.id_value.isnull(), 'N', 'Y'), variable=var)
-#     x.loc[~x.id_enddate.isnull(), 'end_year'] = x.loc[~x.id_enddate.isnull()].id_enddate.str.split('-').str[0]
-#     x['pid_multi']=x.groupby(['rentree', 'source', var]).transform('size')
-#     return x.drop(columns=['numero_uai', 'id_value'])
-
-
-# # def etablissements(year):
-# #     from modules.variables_check import uai_paysage
-# #     uai = pd.read_pickle(f"{PATH}output/uai_frequency_source_year{year}.pkl",compression= 'gzip')
-# #     uai_pays = pd.DataFrame()
-# #     up = uai_paysage(uai, 'compos')
-# #     uai_pays = pd.concat([uai_pays, up], ignore_index=True)
-# #     up = uai_paysage(uai, 'etabli')
-# #     up = up.loc[~up.etabli.isin(uai_pays.compos.unique())]
-# #     uai_pays = pd.concat([uai_pays, up], ignore_index=True)
-
-# #     with pd.ExcelWriter(f"{PATH}vars_review_{year}.xlsx", mode='w', engine="openpyxl") as writer:  
-# #         uai_pays.to_excel(writer, sheet_name='uai_paysage', index=False,  header=True, na_rep='')
+    with open('patches/rattach_patch.json', 'w') as f:
+        json.dump(map_dict_trie, f, indent=4)
