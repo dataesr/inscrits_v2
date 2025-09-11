@@ -9,7 +9,7 @@ def get_all_correctifs_from_google():
     #      'L_ED', 'M_IUT', 'N_ING', 'O_DUTBUT', 'LES_COMMUNES', 'DEPTOREG', 'CORRLMD', 'DEPTOREGNEW',
     #      'ETABLI_DIFFUSION_ID', 'FORMATIONS_CORRECTIF', 'CURSUS_LMD_CORRECTIF', 'RESTE_DEPRESPA_CORRECTIF',
     #      'DEP_CORRECTIF', 'ACA_CORRECTIF', 'GROUPE_CORRECTIF', 'COMINS', 'COMUI', 'COMETAB', 'delete']
-    VARS=['LES_COMMUNES', 'COMINS', 'COMETAB', 'ETABLI', 'A_UAI', 'C_ETABLISSEMENTS', 'ETABLI_DIFFUSION_ID']
+    VARS=['LES_COMMUNES', 'COMINS', 'COMETAB', 'A_UAI', 'C_ETABLISSEMENTS', 'ETABLI_DIFFUSION_ID', 'delete']
     df_c = pd.read_excel(url, sheet_name=VARS, dtype=str, na_filter=False)
     for VAR in VARS:
         # logger.debug(f"loading {VAR}...")
@@ -30,14 +30,14 @@ def get_all_correctifs_from_google():
 
 
 def get_all_correctifs():
-    with open(f'{PATH_NOMEN}/correctifs.json', "r") as f:
+    with open(f'{PATH_NOMEN}correctifs.json', "r") as f:
         file = json.load(f)
     correctifs = file.copy()
 
     for key in correctifs.keys():
         df = pd.DataFrame(data=correctifs[key])
         df = df.drop_duplicates()
-        df.columns = df.columns.str.upper()
+        df.columns = df.columns.str.lower()
         dico = df.to_dict(orient="records")
         correctifs[key] = dico
         
