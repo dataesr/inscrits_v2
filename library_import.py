@@ -3,7 +3,7 @@ import warnings, pandas as pd
 warnings.filterwarnings("ignore", 'This pattern has match groups')
 pd.options.mode.copy_on_write = True
 
-global CORRECTIFS_dict, BCN, PAYSAGE_id
+global CORRECTIFS_dict, BCN, PAYSAGE_dict
 
 from modules.sise_read import *
 from modules.sise_content import *
@@ -16,4 +16,5 @@ from modules.variables_check import *
 from utils.functions_shared import *
 from modules.etab_cleaner import *
 from modules.cleansing import *
-
+from modules.etab_enrich import *
+from reference_data.ref_data_utils import *
