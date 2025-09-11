@@ -107,10 +107,10 @@ def rattach_init(rentree):
 
 def data_save(rentree, df_all, last_data_year):
     from config_path import PATH
-    if not os.path.exists(f'{PATH}/output'):
+    if not os.path.exists(f'{PATH}output'):
         print("folder OUTPUT creates into DATA_PATH")
     # Create a new directory because it does not exist
-        os.mkdir(f'{PATH}/output')
+        os.mkdir(f'{PATH}output')
         
     parquet_name = f'sise{str(rentree)[2:4]}.parquet'
     df_all.to_parquet(parquet_name, compression='gzip')
