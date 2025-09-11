@@ -1,5 +1,37 @@
 from config_path import PATH
-global CORRECTIFS_dict, BCN, PAYSAGE_id
+from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
+
+
+def delete(df):
+    import pandas as pd
+    x=pd.DataFrame(CORRECTIFS_dict['delete'])
+    mask = (x.etabli_ori_uai!='')
+    x.loc[mask, 'etabli'] = x.loc[mask, 'etabli_ori_uai']
+    x=x.drop(columns='etabli_ori_uai')
+
+    delete_dict = [
+        {
+            col: int(val) if col == "rentree" else str(val) if col == "diplom" else val 
+            for col, val in ligne.items() 
+            if val != ""
+        }
+        for ligne in x.to_dict(orient='records')
+        ]
+
+    for item in delete_dict:
+        # mask = (df[list(item.keys())] == pd.Series(item)).all(axis=1)
+        # df = df[~mask]
+
+
+        item_filtered = {k: v for k, v in item.items() if k in df.columns}
+        # On convertit les valeurs de 'rentree' et 'diplom' pour qu'elles correspondent au type du DataFrame
+        mask = (df[list(item_filtered.keys())] == pd.Series(item_filtered)).all(axis=1)
+        df = df[~mask]
+
+
+    print(f"- size after delete rows: {len(df)} ")
+    return df
+
 
 def vars_no_empty(df):
     import json
@@ -25,49 +57,48 @@ def vars_no_empty(df):
 
 
     print("- AGE clean")
-    try:
-        liste_entiers = [x.astype('Int64') for x in df.age.unique()]
-        liste_triee = sorted(liste_entiers)
-        # Vérifications
-        valeur_min = min(liste_triee)
-        valeur_max = max(liste_triee)
+    if any(df.age.isnull()):
+        print(f"- ATTENTION age is null\n{df[df.age.isnull()].to_dict(orient='records')}")
+    else:
+        try:
+            liste_entiers = [x.astype('int64') for x in df.age.unique()]
+            liste_triee = sorted(liste_entiers)
+            # Vérifications
+            valeur_min = min(liste_triee)
+            valeur_max = max(liste_triee)
 
-        if valeur_min<14 or valeur_max>99:
-            print(f"### ATTENTION ! age min < {valeur_min}, age max > {valeur_max}")
-    # Tri de la liste
-    except ValueError:
-            print(f"### {[str(x).isdigit() and x != 0 for x in liste_entiers]}")
+            if valeur_min<14 or valeur_max>99:
+                print(f"### ATTENTION ! age min < {valeur_min}, age max > {valeur_max}")
+        # Tri de la liste
+        except ValueError:
+                print(f"### {[str(x).isdigit() and x != 0 for x in liste_entiers]}")
 
     return df
 
 
-def data_cleansing(last_data_year, rentree, etab, meef):
-    from config_path import PATH
-    import pandas as pd, zipfile
+def data_cleansing(df, etab, meef):
+    import pandas as pd
 
-    with zipfile.ZipFile(f"{PATH}output/sise_parquet_{last_data_year}.zip", 'r') as z:
-        df = pd.read_parquet(z.open(f'sise{str(rentree)[2:4]}.parquet'), engine='pyarrow')
+    # with zipfile.ZipFile(f"{PATH}output/sise_parquet_{last_data_year}.zip", 'r') as z:
+    #     df = pd.read_parquet(z.open(f'sise{str(rentree)[2:4]}.parquet'), engine='pyarrow')
 
-    print(f"- {rentree} -> size: {len(df)}")
+    df = delete(df)
 
     # ETABLI & COMPOS & RATTACH
-    if 'rattach' in df.columns:
-        df = df.drop(columns='rattach')
-    if 'etabli' in df.columns and 'compos' in df.columns:
-        df = df.rename(columns={'etabli':'etabli_old', 'compos':'compos_old'})
-        df = (df.merge(etab[['rentree', 'etabli_old', 'etabli', 'compos_old', 'compos', 'rattach']], 
-                    how='left', on=['rentree', 'etabli_old', 'compos_old'])
-            )
+    df = df.drop(columns='rattach')
+    df = df.rename(columns={'etabli':'etabli_old', 'compos':'compos_old'})
+    df = (df.merge(etab[['rentree', 'etabli_old', 'etabli', 'compos_old', 'compos', 'rattach', 'id_paysage', 'lib_paysage']], 
+                how='left', on=['rentree', 'etabli_old', 'compos_old'])
+        )
     df = df.loc[:, ~df.columns.str.contains('_old')]
 
     # ETABLI_DIFFUSION
     try:
         df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
     except KeyError:
-        return print(f'no etabli_diffusion into sise {rentree}')
+        return print(f'no etabli_diffusion into sise {df.rentree.unique()}')
 
     df = vars_no_empty(df)
 
-    
     return df
 
