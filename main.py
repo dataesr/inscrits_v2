@@ -11,7 +11,7 @@ if INITIALISATION == True:
     get_all_correctifs_from_google()
     bcn_complete()
     get_paysageODS()
-    from reference_data.ref_data_utils import *
+    # from reference_data.ref_data_utils import *
 
 
 
@@ -44,12 +44,16 @@ for rentree in ALL_RENTREES:
     df_saclay = pd.concat([df_saclay, df.loc[df.etabli=='0912408Y', ['rentree', 'source', 'compos', 'typ_dipl', 'diplom', 'inspr', 'effectif']]])
     data_save_by_year(rentree, df, 'sise', zipout_path)
 
+df_saclay.to_pickle(f"{PATH}output/saclay_data_{last_data_year}.pkl", compression='gzip')
 
-df_all = (df_all.groupby(list(set(df.columns).difference(set(['effectif']))), dropna=False)
-          .agg({'effectif': 'sum'})
-          .reset_index(name='effectif')
-          )
-df_all.to_pickle(f"{PATH}output/effectif_by_etab_rentree.pkl", compression='gzip')
+x = (df_all.loc[df_all.inspr=='O']
+            .groupby(list(set(df_all.columns).difference(set(['effectif']))), dropna=False)
+            .agg({'effectif': 'sum'})
+            .reset_index()
+            .reindex(columns=['rentree', 'source', 'etabli', 'id_paysage', 'lib_paysage', 'rattach', 'compos', 'effectif'])
+
+            )
+x.to_pickle(f"{PATH}output/effectif_by_etab_rentree.pkl", compression='gzip')
 
 # si besoin de vérifier une source spécifique sans traitement
 zip_path=os.path.join(PATH, f"output/sise_parquet_{last_data_year}.zip")

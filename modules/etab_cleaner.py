@@ -32,6 +32,8 @@ def uai_patching(etab, patch_dict):
         uai_v = ['etabli', 'compos']
     if patch_dict == 'rattach_patch':
         uai_v = ['compos', 'rattach']
+    if patch_dict == 'etabli_patch':
+        uai_v = ['rattach', 'etabli']
 
     map_dict = json.load(open(f"patches/{patch_dict}.json", 'r'))
     mapping = (
@@ -149,6 +151,10 @@ def etab_update(year):
     # RATTACH empty or wrong
     etab = uai_patching(etab, 'rattach_patch')
     print(f"- size ETAB after cleaning RATTACH: {len(etab)}")
+
+    # ETABLI wrong
+    etab = uai_patching(etab, 'etabli_patch')
+    print(f"- size ETAB after cleaning ETABLI: {len(etab)}")
 
     # check uai validity
     etab = uai_invalid_fix(etab)
