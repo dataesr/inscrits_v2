@@ -1,8 +1,9 @@
 from config_path import PATH_NOMEN
-import json, pandas as pd
+import json, pandas as pd, os
 
 def get_all_correctifs_from_google():
-    url='https://docs.google.com/spreadsheet/ccc?key=1FwPq5Qw7Gbgj_sBD6Za4dfDDk6ydozQ99TyRjLkW5d8&output=xls'
+    url=f"https://docs.google.com/spreadsheet/ccc?key={os.environ.get('GOOGLE_KEY')}&output=xls"
+
     CORRECTIFS_dict = {}
     # VARS = ['ETABLI', 'A_UAI', 'C_ETABLISSEMENTS', 'D_EPE', 'E_FORM_ENS', 'DEP_ACA_RESPA_CORRECTIF',
     #       'F_RENTREES', 'G_PAYS', 'H_PROXIMITE', 'I_DNDU', 'J_LMDDONT', 'DISCIPLINES_SISE', 'ETABLI_SOURCE',
