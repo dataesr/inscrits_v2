@@ -81,9 +81,7 @@ def vars_no_empty(df):
 
 def data_cleansing(df, etab, meef):
     import pandas as pd
-
-    # with zipfile.ZipFile(f"{PATH}output/sise_parquet_{last_data_year}.zip", 'r') as z:
-    #     df = pd.read_parquet(z.open(f'sise{str(rentree)[2:4]}.parquet'), engine='pyarrow')
+    from modules.etab_enrich import enrich_fresq
 
     df = delete(df)
 
@@ -100,6 +98,8 @@ def data_cleansing(df, etab, meef):
         df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
     except KeyError:
         return print(f'no etabli_diffusion into sise {df.rentree.unique()}')
+    
+    df = enrich_fresq(df)
 
     df = vars_no_empty(df)
 
