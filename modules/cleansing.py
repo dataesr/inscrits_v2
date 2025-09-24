@@ -19,22 +19,17 @@ def delete(df):
         ]
 
     for item in delete_dict:
-        # mask = (df[list(item.keys())] == pd.Series(item)).all(axis=1)
-        # df = df[~mask]
-
-
         item_filtered = {k: v for k, v in item.items() if k in df.columns}
         # On convertit les valeurs de 'rentree' et 'diplom' pour qu'elles correspondent au type du DataFrame
         mask = (df[list(item_filtered.keys())] == pd.Series(item_filtered)).all(axis=1)
         df = df[~mask]
-
 
     print(f"- size after delete rows: {len(df)} ")
     return df
 
 
 def vars_no_empty(df):
-    import json
+    import json, pandas as pd
     CONF=json.load(open('utils/config_sise.json', 'r'))
     no_empty = [i['var_sise'] for i in CONF if i['empty']=='NO']
 
@@ -58,7 +53,15 @@ def vars_no_empty(df):
 
     print("- AGE clean")
     if any(df.age.isnull()):
-        print(f"- ATTENTION age is null\n{df[df.age.isnull()].to_dict(orient='records')}")
+        print("- ATTENTION age is null")
+        x = (df.loc[(df.age.isnull())&(df.inspr=='O'), ['rentree', 'source', 'etabli', 'id_paysage', 'effectif']]
+                .groupby(['rentree', 'source', 'etabli', 'id_paysage'], dropna=False)
+                .agg({'effectif': 'sum'})
+                .reset_index()
+            )
+        with pd.ExcelWriter(f'{PATH}output/age_tobe_checked.xlsx') as writer:
+            x.to_excel(writer, sheet_name=f'{str(df.rentree.unique()[0])}', index=False)
+
     else:
         try:
             liste_entiers = [x.astype('int64') for x in df.age.unique()]
