@@ -47,3 +47,36 @@ def vars_sise_to_be_check(year):
 			 
     with pd.ExcelWriter(f"{PATH}vars_review_{year}.xlsx", mode='w', engine="openpyxl") as writer:  
         hors_nomen.to_excel(writer, sheet_name='vars_hs_norme', index=False,  header=True, na_rep='', float_format='str')
+
+
+def etab_checking(year, df):
+    dd=['AC', 'CD', 'CV', 'CZ', 'DL', 'DP', 'FH', 'FI', 'FJ', 'FN', 'IB', 
+        'ID', 'JC', 'JD', 'JF', 'MA', 'MB', 'PB', 'PC', 'PL', 'RA', 'RB', 
+        'RC', 'RD', 'RG', 'RH', 'UH', 'UJ', 'UK', 'XA', 'XB', 'XD', 'YB', 
+        'YI', 'DR']
+    
+    df_saclay = df.loc[(df.etabli=='0912408Y')&(df.inspr=='O'), ['rentree', 'source', 'compos', 'typ_dipl', 'diplom', 'effectif']]
+    df_saclay.to_pickle(f"{PATH}output/saclay_data_{year}.pkl", compression='gzip')
+
+    x = df.loc[df.inspr=='O', ['rentree', 'source', 'etabli', 'id_paysage', 'lib_paysage', 'rattach', 'compos', 'effectif']]
+    x = (x.groupby(list(set(x.columns).difference(set(['effectif']))), dropna=False)
+          .agg({'effectif': 'sum'})
+          .reset_index()
+        )
+    x.to_pickle(f"{PATH}output/effectif_by_etab_{year}.pkl", compression='gzip')
+
+    y1 = df.loc[(df.inspr=='O')&(df.typ_dipl.isin(dd)), 
+                ['rentree', 'source', 'etabli', 'id_paysage', 'lib_paysage', 'rattach', 'compos', 'typ_dipl', 'diplom', 'effectif']]
+    y1 = (y1.groupby(list(set(y1.columns).difference(set(['effectif']))), dropna=False)
+            .agg({'effectif': 'sum'})
+            .reset_index()
+            )
+
+    y2 = df.loc[(df.inspr=='O')&(~df.typ_dipl.isin(dd)), 
+                ['rentree', 'source', 'etabli', 'id_paysage', 'lib_paysage', 'rattach', 'compos', 'typ_dipl', 'effectif']]
+    y2 = (y2.groupby(list(set(y2.columns).difference(set(['effectif']))), dropna=False)
+            .agg({'effectif': 'sum'})
+            .reset_index()
+            )
+    y = pd.concat([y1, y2], ignore_index=True)
+    y.to_pickle(f"{PATH}output/effectif_by_etab_diplom_{year}.pkl", compression='gzip')
