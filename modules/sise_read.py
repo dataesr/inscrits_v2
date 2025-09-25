@@ -26,7 +26,7 @@ def sise_read(path):
             print(filename)
 
             # chargement des tables en conservant que les variables de la liste utils/vars_list
-            df = src_load(filename, source, rentree) 
+            df = src_load(last_data_year, filename, source, rentree) 
             df_all = pd.concat([df_all, df], ignore_index=True)
             
         df_all = vars_init(df_all)
