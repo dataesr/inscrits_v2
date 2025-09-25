@@ -5,7 +5,7 @@ def bcn_harvest():
 
     # Répertoire contenant les fichiers ZIP
     directory = f'{PATH}bcn/'
-    zip_file_path = last_file_into_folder(directory, 'zip')
+    zip_file_path = last_file_into_folder(directory, 'zip', 'BCN_EXTRACT_530')
 
     # Dictionnaire pour stocker les DataFrames de chaque fichier .dat
     dataframes = {}
@@ -109,7 +109,10 @@ def bcn_complete():
 
     for i in bcn1:
         bcn1[i].columns=bcn1[i].columns.str.lower()
-    
+
+        if i=='N_DISCIPLINE_SISE':
+            bcn1[i] = bcn1[i].rename(columns={'discipline_sise':'discipli'})
+
     with open(f'{PATH_NOMEN}bcn.pkl', 'wb') as file:
         pickle.dump(bcn1, file)
    
