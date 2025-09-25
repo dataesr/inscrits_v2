@@ -46,7 +46,8 @@ def enrich_paysage(etab):
     print(f"- size ETAB after lib_paysage: {len(etab)}")
     return etab
 
+
 def enrich_fresq(df):
-    uai_fresq = pd.DataFrame(CORRECTIFS_dict['O_INF_FRESQ'])
+    uai_fresq = pd.DataFrame(CORRECTIFS_dict['O_INF_FRESQ']).assign(rentree=lambda x: x['rentree'].astype(int))
     df = df.merge(uai_fresq, how='left', on=['rentree', 'rattach', 'diplom'])
     return df
