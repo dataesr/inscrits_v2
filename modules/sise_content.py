@@ -72,9 +72,9 @@ def vars_init(df):
     return df
 
 
-def src_load(filename, source, rentree):
+def src_load(last_data_year, filename, source, rentree):
     from config_path import PATH
-    with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as z:
+    with zipfile.ZipFile(f"{PATH}input/parquet_origine_{last_data_year}.zip", 'r') as z:
         df = pd.read_parquet(z.open(f'{filename}.parquet'), engine='pyarrow')
 
     CONF=json.load(open('utils/config_sise.json', 'r'))
