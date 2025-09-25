@@ -106,7 +106,7 @@
     {
         "var_rgp":"ETABLISSEMENT",
         "var_sise":"compos",
-        "n_data":"PAYSAGE_id",
+        "n_data":"N_BCE_SISE_N",
         "format":"str",
         "missing_value":"",
         "empty":"NO"
@@ -422,5 +422,13 @@
         "format":"str",
         "missing_value":"-1",
         "empty":""
+    },
+    {
+        "var_rgp":"FORMATION",
+        "var_sise":"discipli",
+        "n_data":"N_DISCIPLINE_SISE",
+        "format":"str",
+        "missing_value":"-1",
+        "empty":"NO"
     }
 ]
