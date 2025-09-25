@@ -46,6 +46,6 @@ etab_checking(int(last_data_year), df_all)
 # si besoin de vérifier une source spécifique sans traitement
 # zip_path=os.path.join(PATH, f"output/sise_parquet_{last_data_year}.zip")
 zip_path=os.path.join(PATH, f"input/parquet_origine.zip")
-df=get_individual_source(zip_path,'culture', '2024')
+df=get_individual_source(zip_path, 'culture', '2024')
 # from test_py import work_csv
 # work_csv(x, 'vars_hs_nomen')

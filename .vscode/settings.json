@@ -1,3 +1,5 @@
 {
-    "python.analysis.extraPaths": ["./INSCRITS_V2"]
+    "python.analysis.extraPaths": ["./INSCRITS_V2"],
+    "python.defaultInterpreter": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.terminal.activateEnvironment": true
 }
