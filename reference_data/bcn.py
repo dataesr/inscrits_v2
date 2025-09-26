@@ -117,11 +117,11 @@ def bcn_complete():
         pickle.dump(bcn1, file)
    
 
-def get_all_bcn():
-    from config_path import PATH_NOMEN
-    import pickle, pandas as pd
+# def get_all_bcn():
+#     from config_path import PATH_NOMEN
+#     import pickle, pandas as pd
 
-    with open(f'{PATH_NOMEN}bcn.pkl', 'rb') as file:
-        bcn = pickle.load(file)
+#     with open(f'{PATH_NOMEN}bcn.pkl', 'rb') as file:
+#         bcn = pickle.load(file)
         
-    return bcn
+#     return bcn

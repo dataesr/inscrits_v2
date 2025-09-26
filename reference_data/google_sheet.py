@@ -10,11 +10,13 @@ def get_all_correctifs_from_google():
     #      'L_ED', 'M_IUT', 'N_ING', 'O_DUTBUT', 'LES_COMMUNES', 'DEPTOREG', 'CORRLMD', 'DEPTOREGNEW',
     #      'ETABLI_DIFFUSION_ID', 'FORMATIONS_CORRECTIF', 'CURSUS_LMD_CORRECTIF', 'RESTE_DEPRESPA_CORRECTIF',
     #      'DEP_CORRECTIF', 'ACA_CORRECTIF', 'GROUPE_CORRECTIF', 'COMINS', 'COMUI', 'COMETAB', 'delete']
-    VARS=['LES_COMMUNES', 'COMINS', 'COMETAB', 'A_UAI', 'C_ETABLISSEMENTS', 'ETABLI_DIFFUSION_ID', 'delete', 'O_INF_FRESQ' ]
+    VARS=['LES_COMMUNES', 'COMINS', 'COMETAB', 'A_UAI', 'C_ETABLISSEMENTS', 'ETABLI_DIFFUSION_ID', 'delete', 
+          'O_INF_FRESQ', 'DISCIPLINES_SISE']
     df_c = pd.read_excel(url, sheet_name=VARS, dtype=str, na_filter=False)
     for VAR in VARS:
         # logger.debug(f"loading {VAR}...")
         correctifs = df_c.get(VAR).to_dict(orient='records')
+        correctifs = [{k.lower(): v for k, v in d.items()} for d in correctifs]
         for c in correctifs:
             for f in c:
                 if c[f] != c[f]: # nan
@@ -30,16 +32,16 @@ def get_all_correctifs_from_google():
     json.dump(CORRECTIFS_dict, open(f'{PATH_NOMEN}correctifs.json', 'w'))
 
 
-def get_all_correctifs():
-    with open(f'{PATH_NOMEN}correctifs.json', "r") as f:
-        file = json.load(f)
-    correctifs = file.copy()
+# def get_all_correctifs():
+#     with open(f'{PATH_NOMEN}correctifs.json', "r") as f:
+#         file = json.load(f)
+#         correctifs = file.copy()
 
-    for key in correctifs.keys():
-        df = pd.DataFrame(data=correctifs[key])
-        df = df.drop_duplicates()
-        df.columns = df.columns.str.lower()
-        dico = df.to_dict(orient="records")
-        correctifs[key] = dico
+#     # for key in correctifs.keys():
+#     #     df = pd.DataFrame(data=correctifs[key])
+#     #     df = df.drop_duplicates()
+#     #     df.columns = df.columns.str.lower()
+#     #     dico = df.to_dict(orient="records")
+#     #     correctifs[key] = dico
         
-    return correctifs
+#     return correctifs

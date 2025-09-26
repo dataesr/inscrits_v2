@@ -14,12 +14,12 @@ def get_paysageODS():
     json.dump(paysage_dict, open(f'{PATH_NOMEN}paysage.json', 'w'))
 
 
-def get_paysage(json_name):
-    from config_path import PATH_NOMEN
-    import json
+# def get_paysage(json_name):
+#     from config_path import PATH_NOMEN
+#     import json
 
-    with open(f'{PATH_NOMEN}{json_name}.json', "r") as f:
-        file = json.load(f)
-    return file
+#     with open(f'{PATH_NOMEN}{json_name}.json', "r") as f:
+#         file = json.load(f)
+#     return file
 
 
