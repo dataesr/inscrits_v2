@@ -314,7 +314,7 @@
     {
         "var_rgp":"FORMATION",
         "var_sise":"sectdis",
-        "n_data":"N_SECTEUR_DISCIPLINAIRE_SISE",
+        "n_data":"DISCIPLINES_SISE",
         "format":"str",
         "missing_value":"",
         "empty":"NO"
@@ -422,13 +422,5 @@
         "format":"str",
         "missing_value":"-1",
         "empty":""
-    },
-    {
-        "var_rgp":"FORMATION",
-        "var_sise":"discipli",
-        "n_data":"N_DISCIPLINE_SISE",
-        "format":"str",
-        "missing_value":"-1",
-        "empty":"NO"
     }
 ]
