@@ -9,11 +9,12 @@ if INITIALISATION == True:
 
     sise_config()
     get_all_correctifs_from_google()
+    update_ref_data('correctifs.json')
     bcn_complete()
+    update_ref_data('bcn.pkl')
     get_paysageODS()
-    # from reference_data.ref_data_utils import *
-
-
+    update_ref_data('paysage.json')
+    
 
 # STEP 2
 last_data_year = last_year_into_zip(f"{PATH}output/", 'sise_parquet')
