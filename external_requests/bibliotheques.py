@@ -13,7 +13,7 @@ for rentree in range(2022, 2025):
 
     df = get_individual_source(zip_path,'sise', rentree)
     
-    tmp = df.loc[df.inspr=='O', ['rentree', 'id_paysage', 'cursus_lmd', 'sectdis', 'effectif']]
+    tmp = df.loc[df.inspr=='O', ['rentree', 'id_paysage', 'cursus_lmd', 'typ_dipl', 'diplom', 'sectdis', 'effectif']]
     tmp = tmp.merge(c_etab[['id_paysage', 'uo_lib', 'id_paysage_actuel', 'anciens_codes_uai']], how='inner', on='id_paysage')
     tmp = (tmp.merge(c_etab[['id_paysage', 'uo_lib']]
                      .drop_duplicates()
@@ -34,10 +34,13 @@ for rentree in range(2022, 2025):
                                     'id_paysage_actuel', 
                                     'uo_lib_actuel', 
                                     'cursus_lmd', 
+                                    'typ_dipl', 
+                                    'diplom',
                                     'sectdis',
                                     'sectdis_lib',
                                     'discipli',
                                     'discipli_lib',
                                     'effectif'])
     
-    df_all.to_excel(f"{PATH}work/bibliotheques_2025_09.xlsx", na_rep='', index=False)
+    
+df_all.to_excel(f"{PATH}work/bibliotheques_2025_09.xlsx", na_rep='', index=False)
