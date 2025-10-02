@@ -39,9 +39,10 @@ ALL_RENTREES = list(range(2004, int(last_data_year)+1))
 for rentree in ALL_RENTREES:
     df = get_individual_source(zipin_path, 'sise', rentree)
     df = data_cleansing(df, etab, meef)
-    df_all = pd.concat([df_all, df[['rentree', 'source', 'etabli', 'compos', 'rattach', 'id_paysage', 'lib_paysage', 'inspr', 'typ_dipl', 'diplom', 'effectif']]])
+    df_all = pd.concat([df_all, df[['rentree', 'source', 'etabli', 'id_paysage', 'lib_paysage', 'rattach', 'compos',  'uai_fresq', 'inf', 'inspr', 'cursus', 'typ_dipl', 'diplom', 'effectif']]])
     data_save_by_year(rentree, df, 'sise', zipout_path)
 
+df_all.to_pickle(f"{PATH}work/sise_etab_{last_data_year}.pkl")
 etab_checking(int(last_data_year), df_all)
 
 # si besoin de vérifier une source spécifique sans traitement
