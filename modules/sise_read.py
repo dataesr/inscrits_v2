@@ -1,7 +1,7 @@
 def sise_read(path):
     import pandas as pd, numpy as np
     from modules.sise_content import zip_content, src_load, data_save, vars_init, rattach_init
-    from utils.functions_shared import get_sources
+    from utils.functions_shared import get_sources, check_items_list
     
 
     ### liste les noms des datasets présents dans le zip parquet, extraction de la dernière années des données dispo
@@ -35,10 +35,8 @@ def sise_read(path):
 
         # sauvegarde dans output d'un sise complet par année au format parquet
         data_save(rentree, df_all, last_data_year)
-        for i in df_all.columns.difference(['rentree', 'source']):
-            tmp = df_all.groupby(['rentree', 'source'])[i].value_counts(dropna=False).reset_index().rename(columns={i:'item'}).assign(variable=i)
-            df_items = pd.concat([df_items, tmp])
-            del tmp
+        res = check_items_list(df_all)
+        df_items = pd.concat([df_items, res])
         
         uai_correctif = pd.concat([uai_correctif, df_all[['rentree', 'source', 'etabli', 'compos', 'rattach', 'effectif']]])
         
@@ -58,5 +56,5 @@ def sise_read(path):
                .reset_index()
                .to_pickle(f"{path}output/uai_frequency_source_year{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1}))
     
-    df_items.mask(df_items=='', inplace=True)
-    df_items.to_pickle(f"{path}output/items_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
+    # df_items.mask(df_items=='', inplace=True)
+    df_items.to_pickle(f"{path}output/items_origin_by_vars{last_data_year}.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
