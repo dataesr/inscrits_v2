@@ -1,6 +1,6 @@
 from config_path import PATH
 from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
-
+import json, pandas as pd
 
 def delete(df):
     import pandas as pd
@@ -36,19 +36,12 @@ def vars_no_empty(df):
     for c in no_empty:
         print(f"- {c} -> {df[c].unique()}")
 
-    print("- INSPR clean")
-    try:
-        df.loc[df.inspr=='0', 'inspr'] = 'O'
-    except:
-        print("#### ATTENTION - INSPR not in df")
-
-
     print("- EFFECTIF clean")
     try:
         if any(~df.effectif.isin([0,1])):
-            print("#### ATTENTION ! EFFECTIF not valid item")
+            print("# ATTENTION ! EFFECTIF not valid item")
     except KeyError:
-        print("#### ATTENTION ! EFFECTIF not in df")    
+        print("# ATTENTION ! EFFECTIF not in df")    
 
 
     print("- AGE clean")
@@ -78,10 +71,88 @@ def vars_no_empty(df):
 
     return df
 
+## ETABLISSEMENT ####################################
+# NUMED
+def ed_clean(df):
+    print(f"- ED clean")
+    try:
+        df['numed'] = df['numed'].str.lstrip('0')
+    except KeyError:
+        print("# ATTENTION ! numed not in df")   
+    return df
 
+## COMPTAGE ########################################
+# INSPR
+def inspr_clean(df):
+    print("- INSPR clean")
+    try:
+        df.loc[df.inspr=='0', 'inspr'] = 'O'
+    except:
+        print("# ATTENTION - INSPR not in df")
+    return df
+
+def effectif_clean(df):
+    print("- EFFECTIF clean")
+    try:
+        if any(~df.effectif.isin([0,1])):
+            print("# ATTENTION ! EFFECTIF not valid item")
+    except KeyError:
+        print("# ATTENTION ! EFFECTIF not in df")   
+
+
+
+
+## FORMATION ########################################
+# DIPLOM
+def diplom_empty(df):
+    print(f"- DIPLOM EMPTY clean")
+    try:
+        diplom_dict=json.load(open('patches/diplom_empty.json', 'r'))
+        for etabli, diplom in diplom_dict.items():
+            df.loc[(df.etabli==etabli)&(df.diplom=='-1'), 'diplom'] = diplom
+        
+        df.loc[df.diplom=='-1', 'diplom'] = '9999999'
+    except (AttributeError, KeyError, ValueError) as e:
+        print(f"Une erreur est survenue : {type(e).__name__} - {e}")
+    return df
+
+# CURPAR
+def curpar_clean(df):
+    print(f"- CURPAR clean")
+    try:
+        df.loc[df.curpar.isin(['-1', 'N']), 'curpar'] = '00'
+    except KeyError:
+        print("# ATTENTION ! CURPAR not in df")       
+    return df
+
+# FRESQ
+def enrich_fresq(df):
+    print(f"- FRESQ enrich")
+    uai_fresq = pd.DataFrame(CORRECTIFS_dict['O_INF_FRESQ']).assign(rentree=lambda x: x['rentree'].astype(int))
+    df = df.merge(uai_fresq, how='left', on=['rentree', 'rattach', 'diplom'])
+    return df
+
+
+
+### ETUDIANT ########################################
+def nation_clean(df):
+    # NATION
+    print(f"- NATION clean")
+    df.loc[df.nation.isin(['$']), 'nation'] = '-1'
+    # cp = json.load(open('patches/country.json', 'r'))
+    # df['nation'] = df['nation'].replace(cp)
+    c = pd.DataFrame(CORRECTIFS_dict['G_PAYS'])
+    c.mask(c=='', inplace=True)
+    c = c.loc[c.lib.isnull()].pays.to_list()
+    df.loc[df.nation.isin(c), 'nation'] = '999'
+    return df
+
+
+
+
+### COMPLETE ####################################################################################################
 def data_cleansing(df, etab, meef):
-    import pandas as pd
-    from modules.etab_enrich import enrich_fresq
+    import pandas as pd, numpy as np
 
     df = delete(df)
 
@@ -93,15 +164,42 @@ def data_cleansing(df, etab, meef):
         )
     df = df.loc[:, ~df.columns.str.contains('_old')]
 
+    # remove etabli without id_paysage
+    df.loc[df.id_paysage=='', 'id_paysage'] = np.nan
+    if len(df.loc[df.id_paysage.isnull()])>0:
+        x=df.loc[df.id_paysage.isnull(), ['rentree', 'source', 'etabli']].drop_duplicates()
+        print(f"- etabli without id_paysage by source: {x.source.value_counts()}")
+        df = df.loc[~((df.source.isin(['mana', 'culture', 'enq26bis']))&(df.id_paysage.isnull()))]
+    
+    print(f"- size after remove etabli without paysage: {len(df)}")
+
     # ETABLI_DIFFUSION
     try:
         df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
     except KeyError:
         return print(f'no etabli_diffusion into sise {df.rentree.unique()}')
     
+    ##########################
+    # df = df.mask(df=='')
+
+    effectif_clean(df)
+    df = inspr_clean(df)
+    df = diplom_empty(df)
+
     df = enrich_fresq(df)
 
-    df = vars_no_empty(df)
+    # df = vars_no_empty(df)
 
+    df = ed_clean(df)
+
+    df = curpar_clean(df)
+
+    df = nation_clean(df)
+
+
+
+
+
+    
     return df
 
