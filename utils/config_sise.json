@@ -178,10 +178,10 @@
     {
         "var_rgp":"ETUDIANT",
         "var_sise":"nation",
-        "n_data":"N_PAYS",
+        "n_data":"G_PAYS",
         "format":"str",
         "missing_value":"-1",
-        "empty":"NO"
+        "empty":""
     },
     {
         "var_rgp":"ETUDIANT",
@@ -267,14 +267,6 @@
         "var_rgp":"FORMATION",
         "var_sise":"cycle",
         "n_data":"N_CYCLE_SISE",
-        "format":"str",
-        "missing_value":"-1",
-        "empty":""
-    },
-    {
-        "var_rgp":"FORMATION",
-        "var_sise":"diplom",
-        "n_data":"N_DIPLOME_SISE",
         "format":"str",
         "missing_value":"-1",
         "empty":""
@@ -419,6 +411,14 @@
         "var_rgp":"FORMATION_ETUDIANT",
         "var_sise":"voie",
         "n_data":"N_VOIE_LMD",
+        "format":"str",
+        "missing_value":"-1",
+        "empty":""
+    },
+    {
+        "var_rgp":"FORMATION",
+        "var_sise":"diplom",
+        "n_data":"N_DIPLOME_SISE",
         "format":"str",
         "missing_value":"-1",
         "empty":""
