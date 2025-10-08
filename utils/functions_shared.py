@@ -95,3 +95,13 @@ def data_save_by_year(rentree, df, filename, zip_path):
         print(f"Deleted: {parquet_name}")
     except Exception as e:
         print(f"Error deleting {parquet_name}: {e}")
+
+
+def check_items_list(df):
+    import pandas as pd
+    df_items = pd.DataFrame()
+    for i in df.columns.difference(['rentree', 'source']):
+        tmp = df.groupby(['rentree', 'source'])[i].value_counts(dropna=False).reset_index().rename(columns={i:'item'}).assign(variable=i)
+        df_items = pd.concat([df_items, tmp])
+        df_items.mask(df_items=='', inplace=True)
+    return df_items
