@@ -244,8 +244,8 @@
         "var_sise":"flag_sup",
         "n_data":"N_SUP",
         "format":"str",
-        "missing_value":"1",
-        "empty":""
+        "missing_value":"-1",
+        "empty":"NO"
     },
     {
         "var_rgp":"FORMATION",
