@@ -113,9 +113,14 @@ def bcn_complete():
         if i=='N_DISCIPLINE_SISE':
             bcn1[i] = bcn1[i].rename(columns={'discipline_sise':'discipli'})
         
-        if i=='N_CONVETION':
-            mask=bcn1[i].convention.str.isnumeric()
-            bcn1[i].loc[mask, 'convention'] = bcn1[i].loc[mask, 'convention'].str.rjust(2, fillchar='0') 
+        if i in ['N_CONVENTION', 'N_NIVEAU_SISE']:
+            first_col = bcn1[i].columns[0]
+            # bcn1[i][first_col] = bcn1[i][first_col].astype(str).apply(lambda x: x.rjust(2, '0') if x.isnumeric() else x)
+            mask=bcn1[i][first_col].astype(str).str.isnumeric()
+            bcn1[i].loc[mask, first_col] = bcn1[i].loc[mask, first_col].astype(str).str.rjust(2, fillchar='0') 
+            
+
+    print(bcn1)
 
     with open(f'{PATH_NOMEN}bcn.pkl', 'wb') as file:
         pickle.dump(bcn1, file)
