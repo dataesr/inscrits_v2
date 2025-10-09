@@ -18,11 +18,14 @@ def get_most_recent_year(items):
 def zip_content():
     # Importer le chemin de configuration depuis un module externe
     from config_path import PATH
+    from utils.functions_shared import last_file_into_folder
+
+    zip_file_path=last_file_into_folder(f"{PATH}input/", 'zip', 'parquet_origine')
 
     # Ouvrir le fichier ZIP en mode lecture
     parquet_files = []
 
-    with zipfile.ZipFile(f"{PATH}input/parquet_origine.zip", 'r') as zip_ref:
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
         for file_info in zip_ref.infolist():
             if file_info.filename.endswith('.parquet'):
                 # Extraire uniquement le nom du fichier sans le chemin
@@ -52,6 +55,7 @@ def vars_compare(filename, source, rentree):
 
 
 def vars_init(df):
+    from modules.cleansing import delete
     CONF=json.load(open('utils/config_sise.json', 'r'))
     for conf in CONF:
         var_sise = conf["var_sise"]
@@ -68,6 +72,8 @@ def vars_init(df):
 
             if format_type=='int':
                 df[var_sise] = pd.to_numeric(df[var_sise], errors='coerce').astype('Int64')
+
+    df = delete(df)
             
     return df
 
