@@ -2,8 +2,18 @@ from config_path import PATH
 from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
 import json, pandas as pd
 
+
+
 def delete(df):
     import pandas as pd
+
+    print(f"- remove FLAG_SUP=1")
+    try:
+        df = df.loc[df.flag_sup!='1']
+    except:
+        print("- no flag_sup in df")
+
+    print(f"- remove rows to delete")
     x=pd.DataFrame(CORRECTIFS_dict['delete'])
     mask = (x.etabli_ori_uai!='')
     x.loc[mask, 'etabli'] = x.loc[mask, 'etabli_ori_uai']
@@ -116,6 +126,35 @@ def diplom_empty(df):
         print(f"Une erreur est survenue : {type(e).__name__} - {e}")
     return df
 
+def diplom_to_vars_bcn(df):
+    print(f"-- add TYP_DIPL/SECTDIS by DIPLOM from BCN")
+    b = (BCN['N_DIPLOME_SISE'][['diplome_sise', 'type_diplome_sise', 'secteur_disciplinaire_sise']]
+         .rename({'diplome_sise':'diplom',
+                  'type_diplome_sise':'typ_dipl',
+                  'secteur_disciplinaire_sise':'sectdis'
+         })
+        )
+    
+    df = (df
+          .rename({
+                'typ_dipl':'typ_dipl_orig',
+                'sectdis':'sectdis_orig'
+          })
+        .merge(b, how='left', on='diplom')
+        )
+    return df
+
+def sectdis_clean(df):
+    print(f"- SECTDIS clean")
+    df.loc[df.sectdis_orig.isin(['44','45','46','47','48']), 'sectdis_orig']="39"
+    return df
+
+def niveau_clean(df):
+    print(f"- NIVEAU clean")
+    b = list(BCN['N_NIVEAU_SISE'].niveau_sise)
+    df.loc[~df.niveau.isin(b), 'niveau'] = '01'
+    return df
+
 # CURPAR
 def curpar_clean(df):
     print(f"- CURPAR clean")
@@ -183,8 +222,13 @@ def data_cleansing(df, etab, meef):
     # df = df.mask(df=='')
 
     effectif_clean(df)
+
     df = inspr_clean(df)
     df = diplom_empty(df)
+    df = diplom_to_vars_bcn(df)
+    df = sectdis_clean(df)
+    df = niveau_clean(df)
+
 
     df = enrich_fresq(df)
 
