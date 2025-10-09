@@ -2,7 +2,25 @@ from reference_data.bcn import *
 from reference_data.google_sheet import *
 from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
 from config_path import PATH
+from utils.functions_shared import get_individual_source
 import pandas as pd, json, numpy as np
+
+
+
+def diplom_to_check_by_source(year, hors_nomen):
+    zip_path=os.path.join(PATH, f"output/sise_cleaned_{year}.zip")
+
+    # diplom
+    df = pd.DataFrame()
+    dip = hors_nomen.loc[(hors_nomen.variable=='diplom')&(hors_nomen.hors_nomenclature=='1'), ['rentree', 'source', 'item']]
+
+    for rentree in dip.rentree.unique():
+        tmp = get_individual_source(zip_path, 'sise', rentree)
+        tmp = tmp.merge(dip.loc[(dip.rentree==rentree)], how='inner', left_on=['rentree', 'source', 'diplom'], right_on=['rentree', 'source', 'item'])
+        df = pd.concat([df, tmp[['rentree', 'source', 'etabli', 'id_paysage', 'lib_paysage', 'compos', 'typ_dipl', 'diplom', 'sectdis', 'cursus_lmd']].drop_duplicates()], ignore_index=True)
+
+    with pd.ExcelWriter(f"{PATH}vars_review_cleaned_{year}.xlsx", mode='a', if_sheet_exists="replace") as writer:  
+        df.to_excel(writer, sheet_name='diplom', index=False)
 
 
 def vars_sise_to_be_check(year, stage):
@@ -14,7 +32,7 @@ def vars_sise_to_be_check(year, stage):
     for conf in CONF:
         var_sise = conf["var_sise"]
         nomen = conf["n_data"]
-        print(f"{var_sise} -> {nomen}")
+        # print(f"{var_sise} -> {nomen}")
 
         if var_sise in ['etabli', 'compos', 'etabli_diffusion']:
             continue
@@ -53,6 +71,11 @@ def vars_sise_to_be_check(year, stage):
     hors_nomen=hors_nomen[['rentree','source','variable','nomenclature','item','libelle','count','hors_nomenclature']]
     with pd.ExcelWriter(f"{PATH}vars_review_{stage}_{year}.xlsx", mode='w', engine="openpyxl") as writer:  
         hors_nomen.to_excel(writer, sheet_name='vars_hs_norme', index=False,  header=True, na_rep='', float_format='str')
+
+    if stage=='cleaned':
+        diplom_to_check_by_source(year, hors_nomen)
+
+
 
 
 def etab_checking(year, df):
