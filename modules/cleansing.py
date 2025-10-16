@@ -7,13 +7,13 @@ import json, pandas as pd
 def delete(df):
     import pandas as pd
 
-    print(f"- remove FLAG_SUP=1")
     try:
+        print(f"- remove FLAG_SUP=1")
         df = df.loc[df.flag_sup!='1']
     except:
         print("- no flag_sup in df")
 
-    print(f"- remove rows to delete")
+    
     x=pd.DataFrame(CORRECTIFS_dict['delete'])
     mask = (x.etabli_ori_uai!='')
     x.loc[mask, 'etabli'] = x.loc[mask, 'etabli_ori_uai']
@@ -28,13 +28,16 @@ def delete(df):
         for ligne in x.to_dict(orient='records')
         ]
 
-    for item in delete_dict:
-        item_filtered = {k: v for k, v in item.items() if k in df.columns}
-        # On convertit les valeurs de 'rentree' et 'diplom' pour qu'elles correspondent au type du DataFrame
-        mask = (df[list(item_filtered.keys())] == pd.Series(item_filtered)).all(axis=1)
-        df = df[~mask]
-
-    print(f"- size after delete rows: {len(df)} ")
+    try:
+        print(f"- remove rows to delete")
+        for item in delete_dict:
+            item_filtered = {k: v for k, v in item.items() if k in df.columns}
+            # On convertit les valeurs de 'rentree' et 'diplom' pour qu'elles correspondent au type du DataFrame
+            mask = (df[list(item_filtered.keys())] == pd.Series(item_filtered)).all(axis=1)
+            df = df[~mask]
+        print(f"- size after delete rows: {len(df)} ")
+    except:
+        print("- no remove rows in df")
     return df
 
 
@@ -79,31 +82,46 @@ def vars_no_empty(df):
         except ValueError:
                 print(f"### {[str(x).isdigit() and x != 0 for x in liste_entiers]}")
 
-    return df
+
 
 ## ETABLISSEMENT ####################################
-# NUMED
-def ed_clean(df):
-    print(f"- ED clean")
+def comins_clean(df):
     try:
-        df['numed'] = df['numed'].str.lstrip('0')
-    except KeyError:
-        print("# ATTENTION ! numed not in df")   
+        print(f"- COMINS clean")
+        comins_dict=json.load(open('patches/comins.json', 'r'))
+        def get_first_value(comins_dict, key):
+            if key in comins_dict:
+                inner_dict = comins_dict[key]
+                # Retourne la première valeur du dictionnaire interne
+                return next(iter(inner_dict.values()))
+            return None
+
+        # Mise à jour de la colonne 'comins'
+        for i, row in df.iterrows():
+            key = row['compos']
+            if key in comins_dict:
+                df.at[i, 'comins'] = get_first_value(comins_dict, key)
+
+    except:
+        print("")
+
     return df
+
+
 
 ## COMPTAGE ########################################
 # INSPR
-def inspr_clean(df):
-    print("- INSPR clean")
+def inspr_clean(df): 
     try:
+        print("- INSPR clean")
         df.loc[df.inspr=='0', 'inspr'] = 'O'
     except:
         print("# ATTENTION - INSPR not in df")
     return df
 
 def effectif_clean(df):
-    print("- EFFECTIF clean")
     try:
+        print("- EFFECTIF clean")
         if any(~df.effectif.isin([0,1])):
             print("# ATTENTION ! EFFECTIF not valid item")
     except KeyError:
@@ -113,10 +131,20 @@ def effectif_clean(df):
 
 
 ## FORMATION ########################################
+# NUMED
+def ed_clean(df):
+    try:
+        print(f"- ED clean")
+        df['numed'] = df['numed'].str.lstrip('0')
+    except KeyError:
+        print("# ATTENTION ! numed not in df")   
+    return df
+
 # DIPLOM
 def diplom_empty(df):
-    print(f"- DIPLOM EMPTY clean")
+    
     try:
+        print(f"- DIPLOM EMPTY clean")
         diplom_dict=json.load(open('patches/diplom_empty.json', 'r'))
         for etabli, diplom in diplom_dict.items():
             df.loc[(df.etabli==etabli)&(df.diplom=='-1'), 'diplom'] = diplom
@@ -129,24 +157,29 @@ def diplom_empty(df):
 def diplom_to_vars_bcn(df):
     print(f"-- add TYP_DIPL/SECTDIS by DIPLOM from BCN")
     b = (BCN['N_DIPLOME_SISE'][['diplome_sise', 'type_diplome_sise', 'secteur_disciplinaire_sise']]
-         .rename({'diplome_sise':'diplom',
-                  'type_diplome_sise':'typ_dipl',
-                  'secteur_disciplinaire_sise':'sectdis'
+         .rename(columns={
+                'diplome_sise':'diplom',
+                'type_diplome_sise':'typ_dipl',
+                'secteur_disciplinaire_sise':'sectdis'
          })
         )
     
-    df = (df
-          .rename({
+    df = (df.rename(columns={
                 'typ_dipl':'typ_dipl_orig',
                 'sectdis':'sectdis_orig'
-          })
-        .merge(b, how='left', on='diplom')
+                })
+            .merge(b, how='left', on='diplom')
         )
+    
+    for c in ['typ_dipl', 'sectdis']:
+        corig = f"{c}_orig"
+        df.loc[df[c].isnull(), c] = df.loc[df[c].isnull(), corig] 
+
     return df
 
 def sectdis_clean(df):
     print(f"- SECTDIS clean")
-    df.loc[df.sectdis_orig.isin(['44','45','46','47','48']), 'sectdis_orig']="39"
+    df.loc[df.sectdis.isin(['44','45','46','47','48']), 'sectdis']="39"
     return df
 
 def niveau_clean(df):
@@ -155,10 +188,45 @@ def niveau_clean(df):
     df.loc[~df.niveau.isin(b), 'niveau'] = '01'
     return df
 
+def cursus_clean(df):
+    from collections import defaultdict
+    try:
+        print(f"- CURSUS clean")
+        groupes = defaultdict(list)
+
+        lmd_dict =[{k: v for k, v in d.items() if v != ''} for d in CORRECTIFS_dict['CURSUS_LMD_CORRECTIF']]
+        for d in lmd_dict:
+            cles = tuple(sorted(k for k in d.keys() if k != 'cursus_lmd_out'))
+            groupes[cles].append(d)
+
+        # Pour chaque groupe de dictionnaires partageant les mêmes clés
+        for cles, sous_liste in groupes.items():
+            # Créer un DataFrame temporaire pour la sous-liste
+            df_temp = pd.DataFrame(sous_liste)
+
+            # Faire la jointure sur les clés communes
+            df_merge = df.merge(
+                df_temp,
+                on=list(cles),
+                how='left'
+            )
+
+            # Mettre à jour cursus_lmd avec cursus_lmd_out si correspondance
+            mask = df_merge['cursus_lmd_out'].notna()
+            df.loc[mask, 'cursus_lmd'] = df_merge.loc[mask, 'cursus_lmd_out']
+
+        # 2d fix cursus_lmd
+        lmd_dict ={item['typ_dipl']: item['cursus_lmd_out'] for item in CORRECTIFS_dict['CORRLMD']}
+        df.loc[df.cursus_lmd.isin(['-1', 'X', '9']), 'cursus_lmd'] = df.loc[df.cursus_lmd.isin(['-1', 'X', '9']), 'typ_dipl'].map(lmd_dict).fillna('-1')
+
+    except:
+        print('- cursus_lmd no clean')
+    return df
+
 # CURPAR
 def curpar_clean(df):
-    print(f"- CURPAR clean")
     try:
+        print(f"- CURPAR clean")
         df.loc[df.curpar.isin(['-1', 'N']), 'curpar'] = '00'
     except KeyError:
         print("# ATTENTION ! CURPAR not in df")       
@@ -193,7 +261,7 @@ def nation_clean(df):
 def data_cleansing(df, etab, meef):
     import pandas as pd, numpy as np
 
-    df = delete(df)
+    # df = delete(df)
 
     # ETABLI & COMPOS & RATTACH
     df = df.drop(columns='rattach')
@@ -228,20 +296,19 @@ def data_cleansing(df, etab, meef):
     df = diplom_to_vars_bcn(df)
     df = sectdis_clean(df)
     df = niveau_clean(df)
-
-
+    df = cursus_clean(df)
+    df = curpar_clean(df)
     df = enrich_fresq(df)
 
-    # df = vars_no_empty(df)
 
     df = ed_clean(df)
 
-    df = curpar_clean(df)
+    
 
     df = nation_clean(df)
 
 
-
+    df = comins_clean(df)
 
 
     
