@@ -1,4 +1,5 @@
 import os, pandas as pd
+from datetime import date
 from config_path import PATH
 from utils.functions_shared import get_individual_source
 from reference_data.ref_data_utils import CORRECTIFS_dict
@@ -42,5 +43,5 @@ for rentree in range(2022, 2025):
                                     'discipli_lib',
                                     'effectif'])
     
-    
-df_all.to_excel(f"{PATH}work/bibliotheques_2025_09.xlsx", na_rep='', index=False)
+d = date.today().strftime("%Y-%m-%d")
+df_all.to_excel(f"{PATH}work/bibliotheques_.xlsx", na_rep='', index=False)
