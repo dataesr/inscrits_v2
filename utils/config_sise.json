@@ -186,7 +186,7 @@
     {
         "var_rgp":"ETUDIANT",
         "var_sise":"paripa",
-        "n_data":"N_PAYS",
+        "n_data":"G_PAYS",
         "format":"str",
         "missing_value":"-1",
         "empty":""
