@@ -12,7 +12,7 @@
         "var_sise":"anbac",
         "n_data":"",
         "format":"int",
-        "missing_value":"-1",
+        "missing_value":-1,
         "empty":""
     },
     {
@@ -60,7 +60,7 @@
         "var_sise":"effectif",
         "n_data":"",
         "format":"int",
-        "missing_value":"",
+        "missing_value":-1,
         "empty":"NO"
     },
     {
@@ -75,7 +75,7 @@
         "var_rgp":"COMPTE",
         "var_sise":"nbach",
         "n_data":"",
-        "format":"int",
+        "format":-1,
         "missing_value":"",
         "empty":""
     },
@@ -84,7 +84,7 @@
         "var_sise":"net",
         "n_data":"",
         "format":"int",
-        "missing_value":"",
+        "missing_value":-1,
         "empty":""
     },
     {
@@ -148,7 +148,7 @@
         "var_sise":"age",
         "n_data":"",
         "format":"int",
-        "missing_value":"",
+        "missing_value":-1,
         "empty":"NO"
     },
     {
@@ -156,7 +156,7 @@
         "var_sise":"annais",
         "n_data":"",
         "format":"int",
-        "missing_value":"",
+        "missing_value":-1,
         "empty":"NO"
     },
     {
@@ -196,7 +196,7 @@
         "var_sise":"pcspar",
         "n_data":"N_PCS",
         "format":"str",
-        "missing_value":"-1",
+        "missing_value":"99",
         "empty":""
     },
     {
@@ -204,7 +204,7 @@
         "var_sise":"pcspar2",
         "n_data":"N_PCS",
         "format":"str",
-        "missing_value":"-1",
+        "missing_value":"99",
         "empty":""
     },
     {
