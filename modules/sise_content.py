@@ -72,6 +72,11 @@ def vars_init(df):
 
             if format_type=='int':
                 df[var_sise] = pd.to_numeric(df[var_sise], errors='coerce').astype('Int64')
+                df[var_sise] = df[var_sise].fillna(missing_value)
+        
+        else:
+            print(f"- add {var_sise} -> missing value {missing_value}")
+            df[var_sise] = missing_value
 
     df = delete(df)
             
