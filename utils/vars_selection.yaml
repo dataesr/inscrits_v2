@@ -4,6 +4,7 @@
     - ue_28
     - bologne
     - brics
+    - eff_dei
     - eff_ss_cpge
     - effectif
     - effectif_cesure
@@ -26,12 +27,14 @@
     - depins
     - diplom
     - discipli
+    - eff_dei
     - eff_ss_cpge
     - effectif
     - effectif_cesure
     - effs
     - effs_ss_cpge
     - etabli
+    - etabli_ori_uai
     - fr_etr
     - gddisc
     - id_paysage
