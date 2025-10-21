@@ -135,14 +135,13 @@ def uai_invalid_fix(etab):
 def etab_update(year):
 
     etab = pd.read_pickle(f"{PATH}output/uai_frequency_source_year{year}.pkl",compression= 'gzip')
-    # etab = etab_df[['rentree', 'source', 'etabli', 'compos', 'rattach', 'effectif_tot']]
     print(f"- first size ETAB: {len(etab)}")
 
-    # UAI wrong -> ETABLI=ETABLI_OLD & COMPOS=COMPOS_OLD
+    # UAI wrong -> ETABLI=ETABLI_ORI_UAI & COMPOS=COMPOS_ORI_UAI
     etab = uai_fixing(etab)
     for i in ['etabli', 'compos']:
         etab.loc[etab[f"{i}_new"].isnull(), f"{i}_new"] = etab.loc[etab[f"{i}_new"].isnull(), i]
-        etab = etab.rename(columns={i: f"{i}_old", f"{i}_new": i})
+        etab = etab.rename(columns={i: f"{i}_ori_uai", f"{i}_new": i})
 
     # COMPOS_NEW empty
     etab = uai_patching(etab, 'compos_empty')
@@ -164,7 +163,7 @@ def etab_update(year):
 
 def etabli_meef(year):
     meef = pd.read_pickle(f"{PATH}output/meef_frequency_source_year{year}.pkl",compression= 'gzip')
-
+    meef = meef[['rentree', 'source', 'etabli', 'etabli_diffusion', 'flag_meef']].drop_duplicates()
     # create new_lib with correction etabli_diffusion normandie nouvelle caledonie
     mapping_fix = json.load(open("patches/etabli_meef.json"))
     def fix(row):
