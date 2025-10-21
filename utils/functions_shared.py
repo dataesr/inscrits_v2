@@ -1,3 +1,5 @@
+import pandas as pd
+
 def get_sources(annee):
     # selection des sources existantes en fonction des années
     assert(annee >= 2004)
@@ -105,3 +107,8 @@ def check_items_list(df):
         df_items = pd.concat([df_items, tmp])
         df_items.mask(df_items=='', inplace=True)
     return df_items
+
+def replace_by_nan(serie: pd.Series) -> pd.Series:
+    import numpy as np
+    """Remplace None et "" par np.nan dans une série pandas."""
+    return serie.replace([None, ""], np.nan)
