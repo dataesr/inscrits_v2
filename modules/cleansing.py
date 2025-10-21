@@ -1,5 +1,6 @@
 from config_path import PATH
 from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
+from utils.functions_shared import replace_by_nan
 import json, pandas as pd
 
 
@@ -13,7 +14,6 @@ def delete(df):
     except:
         print("- no flag_sup in df")
 
-    
     x=pd.DataFrame(CORRECTIFS_dict['delete'])
     mask = (x.etabli_ori_uai!='')
     x.loc[mask, 'etabli'] = x.loc[mask, 'etabli_ori_uai']
@@ -83,7 +83,7 @@ def vars_no_empty(df):
                 print(f"### {[str(x).isdigit() and x != 0 for x in liste_entiers]}")
 
 
-
+#####################################################
 ## ETABLISSEMENT ####################################
 def comins_clean(df):
     try:
@@ -98,17 +98,28 @@ def comins_clean(df):
 
         # Mise à jour de la colonne 'comins'
         for i, row in df.iterrows():
-            key = row['compos']
+            key = row['ui']
             if key in comins_dict:
                 df.at[i, 'comins'] = get_first_value(comins_dict, key)
 
     except:
-        print("")
+        print("- COMINS not clean")
 
+    return df.rename(columns={'comins':'comui'})
+
+def cometa_clean(df):
+    try:
+        print(f"- COMETA clean")
+        x=pd.DataFrame(CORRECTIFS_dict['A_COMETA']) 
+        x['rentree'] = x.rentree.astype(int)
+        df = df.rename(columns={'cometa':'cometa_orig'}).merge(x, how='left', on=['rentree', 'id_paysage'])
+        df.loc[df.cometa.isnull(), 'cometa'] = df.loc[df.cometa.isnull()].cometa_orig
+    except:
+        print("- COMETA not clean")
     return df
 
 
-
+####################################################
 ## COMPTAGE ########################################
 # INSPR
 def inspr_clean(df): 
@@ -128,8 +139,88 @@ def effectif_clean(df):
         print("# ATTENTION ! EFFECTIF not in df")   
 
 
+######################################################
+## BAC ###############################################
+# BAC
+def bac_clean(df):
 
+    def bac_a(v):
+        if (v.startswith('A6') or
+            v.startswith('A7') or
+            (v.startswith('A') and '-' in v)):
+            # On prend les deux premières lettres et on ajoute '-85'
+            return v[:2] + '-85'
+        
+        if v.isdigit() and len(v) == 2:
+            v = v.zfill(4)
+        else:
+            return v
 
+    try:
+        print(f"- BAC clean")
+        c = list(BCN['N_BAC'].bac)
+
+        df['bac'] = df['bac'].apply(bac_a)
+        df.loc[~df.bac.isin(c), 'bac'] = '999'
+    except:
+        print("- BAC not clean")   
+    return df
+
+def bac_regroup_clean(df):
+    try:
+        print(f"- BAC_RGRP clean")
+        bd = BCN['N_BAC'][['bac', 'bac_regroupe_2']].drop_duplicates()
+        df = df.merge(bd, how='left', on='bac').rename(columns={'bac_rgrp':'bac_rgrp_orig', 'bac_regroupe_2':'bac_rgrp'})
+
+        df['bac_rgrp'] = replace_by_nan(df.bac_rgrp)
+        df.loc[df.bac_rgrp.isnull(), 'bac_rgrp'] = '9'    
+        df.loc[(df.bac_rgrp=='9')&(df.anbac==-1), 'bac_rgrp'] = '7'
+        df.loc[df.bac_rgrp.isin(["1","2","3"]), 'bac_rgrp'] = 'A'
+
+    except:
+        print("- BAC_RGRP not clean")   
+    return df
+
+def dep_clean(df):
+    dep_dict = {
+    item['depbac_deprespa_in']: item['depbac_deprespa_out']
+    for item in CORRECTIFS_dict['DEP_ACA_CORRECTIF']
+        }
+    
+    try:
+        print("- DEP clean")
+        for i in ['deprespa', 'depbac']:
+            df[i] = df[i].replace(dep_dict)
+    except:
+        print("- DEP not clean")
+    
+    return df
+
+def aca_clean(df):
+    aca_dict = {
+    item['depbac_deprespa_out']: item['acarespa_acabac']
+    for item in CORRECTIFS_dict['DEP_ACA_CORRECTIF']
+        }
+    
+    try:
+        print("- ACA clean")
+        for i in ['acabac']:
+            df[i] = df[i].replace(aca_dict)
+    except:
+        print("- ACA not clean")
+    
+    return df
+
+def situpre_clean(df):
+    try:
+        print("- SITUPRE clean")   
+        c = list(BCN['N_SITUATION_ANNEE_PRECEDENTE'].situation_annee_precedente)
+        df.loc[~df.situpre.isin(c), 'situpre'] = '9'
+    except:
+        print("- SITUPRE not clean")   
+    return df
+
+#####################################################
 ## FORMATION ########################################
 # NUMED
 def ed_clean(df):
@@ -142,7 +233,6 @@ def ed_clean(df):
 
 # DIPLOM
 def diplom_empty(df):
-    
     try:
         print(f"- DIPLOM EMPTY clean")
         diplom_dict=json.load(open('patches/diplom_empty.json', 'r'))
@@ -155,37 +245,68 @@ def diplom_empty(df):
     return df
 
 def diplom_to_vars_bcn(df):
-    print(f"-- add TYP_DIPL/SECTDIS by DIPLOM from BCN")
+    print(f"-- add TYP_DIPL/SECTDIS/NATURE by DIPLOM from BCN")
     b = (BCN['N_DIPLOME_SISE'][['diplome_sise', 'type_diplome_sise', 'secteur_disciplinaire_sise']]
          .rename(columns={
                 'diplome_sise':'diplom',
                 'type_diplome_sise':'typ_dipl',
                 'secteur_disciplinaire_sise':'sectdis'
-         })
-        )
-    
+         }))
     df = (df.rename(columns={
                 'typ_dipl':'typ_dipl_orig',
                 'sectdis':'sectdis_orig'
                 })
-            .merge(b, how='left', on='diplom')
-        )
+            .merge(b, how='left', on='diplom'))
     
     for c in ['typ_dipl', 'sectdis']:
         corig = f"{c}_orig"
         df.loc[df[c].isnull(), c] = df.loc[df[c].isnull(), corig] 
+
+    # add NATURE
+    b = (BCN['N_TYPE_DIPLOME_SISE'][['type_diplome_sise', 'nature_diplome_sise']]
+         .rename(columns={
+                'type_diplome_sise':'typ_dipl',
+                'nature_diplome_sise':'nature'
+         })) 
+    df = (df.rename(columns={'nature':'nature_orig'})
+            .merge(b, how='left', on='typ_dipl'))
+    df.loc[df.nature.isnull(), 'nature'] = df.loc[df.nature.isnull()].nature_orig
 
     return df
 
 def sectdis_clean(df):
     print(f"- SECTDIS clean")
     df.loc[df.sectdis.isin(['44','45','46','47','48']), 'sectdis']="39"
+
+    print("- DISCIPLI add")
+    dd = (BCN['N_SECTEUR_DISCIPLINAIRE_SISE'][['secteur_disciplinaire_sise', 'discipline_sise']]
+             .rename(columns={
+                'secteur_disciplinaire_sise':'sectdis',
+                'discipline_sise':'discipli'
+         }))
+    df = df.merge(dd, how='left', on='sectdis')
+    return df
+
+def groupe_clean(df):
+    try:
+        print(f"- GROUPE clean")
+        df.loc[(df.discipli=='11')&(df.groupe=='5'), 'groupe'] = 'A'
+        grp_dict = {
+        item['value1_in']: item['value_out']
+        for item in CORRECTIFS_dict['GROUPE_CORRECTIF']
+            }
+        df['groupe'] = df['discipli'].map(grp_dict)
+    except:
+        print(f"- GROUPE not clean")
     return df
 
 def niveau_clean(df):
-    print(f"- NIVEAU clean")
-    b = list(BCN['N_NIVEAU_SISE'].niveau_sise)
-    df.loc[~df.niveau.isin(b), 'niveau'] = '01'
+    try:
+        print(f"- NIVEAU clean")
+        b = list(BCN['N_ANNEE_DANS_FORMATION_SISE'].annee_formation)
+        df.loc[~df.niveau.isin(b), 'niveau'] = '01'
+    except:
+        print(f"- NIVEAU not clean")
     return df
 
 def cursus_clean(df):
@@ -227,90 +348,80 @@ def cursus_clean(df):
 def curpar_clean(df):
     try:
         print(f"- CURPAR clean")
-        df.loc[df.curpar.isin(['-1', 'N']), 'curpar'] = '00'
+        c = list(BCN['N_AUTRE_CURSUS_SISE'].autre_cursus_sise)
+        df.loc[~df.curpar.isin(c), 'curpar'] = '99'
     except KeyError:
         print("# ATTENTION ! CURPAR not in df")       
     return df
 
-# FRESQ
-def enrich_fresq(df):
-    print(f"- FRESQ enrich")
-    uai_fresq = pd.DataFrame(CORRECTIFS_dict['O_INF_FRESQ']).assign(rentree=lambda x: x['rentree'].astype(int))
-    df = df.merge(uai_fresq, how='left', on=['rentree', 'rattach', 'diplom'])
-    return df
 
-
-
-### ETUDIANT ########################################
-def nation_clean(df):
-    # NATION
-    print(f"- NATION clean")
-    df.loc[df.nation.isin(['$']), 'nation'] = '-1'
-    # cp = json.load(open('patches/country.json', 'r'))
-    # df['nation'] = df['nation'].replace(cp)
-    c = pd.DataFrame(CORRECTIFS_dict['G_PAYS'])
-    c.mask(c=='', inplace=True)
-    c = c.loc[c.lib.isnull()].pays.to_list()
-    df.loc[df.nation.isin(c), 'nation'] = '999'
-    return df
-
-
-
-
-### COMPLETE ####################################################################################################
-def data_cleansing(df, etab, meef):
-    import pandas as pd, numpy as np
-
-    # df = delete(df)
-
-    # ETABLI & COMPOS & RATTACH
-    df = df.drop(columns='rattach')
-    df = df.rename(columns={'etabli':'etabli_old', 'compos':'compos_old'})
-    df = (df.merge(etab[['rentree', 'etabli_old', 'etabli', 'compos_old', 'compos', 'rattach', 'id_paysage', 'lib_paysage']], 
-                how='left', on=['rentree', 'etabli_old', 'compos_old'])
-        )
-    df = df.loc[:, ~df.columns.str.contains('_old')]
-
-    # remove etabli without id_paysage
-    df.loc[df.id_paysage=='', 'id_paysage'] = np.nan
-    if len(df.loc[df.id_paysage.isnull()])>0:
-        x=df.loc[df.id_paysage.isnull(), ['rentree', 'source', 'etabli']].drop_duplicates()
-        print(f"- etabli without id_paysage by source: {x.source.value_counts()}")
-        df = df.loc[~((df.source.isin(['mana', 'culture', 'enq26bis']))&(df.id_paysage.isnull()))]
-    
-    print(f"- size after remove etabli without paysage: {len(df)}")
-
-    # ETABLI_DIFFUSION
+def amena_clean(df):
     try:
-        df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
-    except KeyError:
-        return print(f'no etabli_diffusion into sise {df.rentree.unique()}')
-    
-    ##########################
-    # df = df.mask(df=='')
-
-    effectif_clean(df)
-
-    df = inspr_clean(df)
-    df = diplom_empty(df)
-    df = diplom_to_vars_bcn(df)
-    df = sectdis_clean(df)
-    df = niveau_clean(df)
-    df = cursus_clean(df)
-    df = curpar_clean(df)
-    df = enrich_fresq(df)
-
-
-    df = ed_clean(df)
-
-    
-
-    df = nation_clean(df)
-
-
-    df = comins_clean(df)
-
-
-    
+        print(f"- AMENA clean")
+        c = list(BCN['N_AMENA'].amena)
+        df.loc[~df.amena.isin(c), 'amena'] = '9'
+    except:
+        print("- AMENA not clean")  
     return df
 
+def conv_clean(df):
+    try:
+        print("- CONV clean")
+        c = list(BCN['N_CONVENTION'].convention)
+        df.loc[~df.conv.isin(c), 'conv'] = '99'
+    except:
+        print("- CONV not clean") 
+    return df
+
+def degetu_clean(df):
+    try:
+        print("- DEGETU clean")
+        c = list(BCN['N_NIVEAU_FORMATION'].niveau_formation)
+        df.loc[~df.degetu.isin(c), 'degetu'] = '9'
+    except:
+        print("- DEGETU not clean") 
+    return df
+
+
+def exoins_clean(df):
+    try:
+        print("- EXOINS clean")
+        c = list(BCN['N_EXONERATIONS'].exoins)
+        df.loc[~df.exoins.isin(c), 'exoins'] = '99'
+    except:
+        print("- EXOINS not clean")   
+    return df
+
+def echang_clean(df):
+    try:
+        print("- ECHANG clean")
+        ec = list(BCN['N_PROGRAMME_ECHANGE_INTERNATIO'].programme_echange_internationa)
+        df.loc[~df.echang.isnin(ec), 'echang'] == '0'
+    except:
+        print("- ECHANG not clean")   
+    return df
+
+#####################################################
+### ETUDIANT ########################################
+def country_clean(df):
+    # NATION/PARIPA
+    cd = pd.DataFrame(CORRECTIFS_dict['G_PAYS'])
+    cd.mask(cd=='', inplace=True)
+    c = list(cd.loc[cd.lib.isnull()].pays)
+
+    for i in ['nation', 'paripa']:
+        print(f"- {i.upper()} clean")
+        df.loc[df[i].isin(c), i] = '999'
+        df.loc[~df[i].isin(list(cd.pays)), i] = '999'
+    return df
+
+
+def pcs_clean(df):
+    print("- PCS clean")
+    c = list(BCN['N_PCS'].pcs)
+    for i in ['pcspar', 'pcspar2']:
+        try:
+            df.loc[~df[i].isin(c), i] = '99'
+        except KeyError:
+            print(f"- {i.upper()} not in df")
+    return df
