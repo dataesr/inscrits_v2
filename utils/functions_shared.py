@@ -98,10 +98,12 @@ def data_save_by_year(rentree, df, filename, zip_path):
     except Exception as e:
         print(f"Error deleting {parquet_name}: {e}")
 
+
 def replace_by_nan(serie: pd.Series) -> pd.Series:
     import numpy as np
     """Remplace None et "" par np.nan dans une série pandas."""
     return serie.replace([None, ""], np.nan)
+
 
 def no_same_size(df_size_ori, df):
     try:
