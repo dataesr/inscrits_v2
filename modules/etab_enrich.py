@@ -3,8 +3,7 @@ import pandas as pd
 from utils.functions_shared import work_csv
 
 
-def from_uai_to_paysage(etab):
-    
+def from_uai_to_paysage(etab): 
     a_uai = pd.DataFrame(CORRECTIFS_dict['A_UAI'])
     a_uai['rentree'] = a_uai['rentree'].astype(int)
     tmp = a_uai.loc[a_uai.type=='inscri', ['rentree', 'source', 'etabli', 'id_paysage']].drop_duplicates()
@@ -27,7 +26,6 @@ def from_uai_to_paysage(etab):
 
     return etab.drop(columns='paysage_count')
 
-
 def from_id_to_lib(etab):
     c_etab = pd.DataFrame([{'id_paysage': i['id_paysage'], 'lib_paysage': i['uo_lib_courant']} for i in CORRECTIFS_dict['C_ETABLISSEMENTS']]).drop_duplicates()
     c_etab['paysage_count'] = c_etab.groupby(['id_paysage'], dropna=False)['lib_paysage'].transform('count')
@@ -37,12 +35,29 @@ def from_id_to_lib(etab):
     etab = etab.merge(c_etab, how='left', on='id_paysage')
     return etab.drop(columns='paysage_count')
 
-def enrich_d_epe(df):
-    epe =  pd.DataFrame(CORRECTIFS_dict['D_EPE'])
-    epe['rentree'] = epe.rentree.astype(int)
-    df = pd.merge(df, epe[['rentree', 'id_paysage', 'id_paysage_epe']], on=['rentree', 'id_paysage'], how='left')
-    return df
+def d_epe_enrich(etab):
+    epe =  pd.DataFrame(CORRECTIFS_dict['D_EPE']).assign(rentree=lambda x: x['rentree'].astype(int))
+    etab = (etab.merge(epe[['rentree', 'id_paysage', 'id_paysage_epe']], on=['rentree', 'id_paysage'], how='left')
+                .drop_duplicates())
+    return etab
 
+def iut_enrich(etab):
+    iut =  (pd.DataFrame(CORRECTIFS_dict['M_IUT'])
+            .assign(rentree=lambda x: x['rentree'].astype(int))
+            .rename(columns={'ur':'rattach', 'ui':'compos'}))
+    etab = (etab.merge(iut[['rentree', 'rattach', 'compos', 'id_paysage_iut', 'id_paysage_iut_campus', 'id_paysage_iut_pole']],
+                how='left', on=['rentree', 'rattach', 'compos'])
+                .drop_duplicates())
+    return etab
+
+def ing_enrich(etab):
+    ing =  (pd.DataFrame(CORRECTIFS_dict['N_ING'])
+            .assign(rentree=lambda x: x['rentree'].astype(int))
+            .rename(columns={'ur':'rattach', 'ui':'compos'}))
+    etab = (etab.merge(ing[['rentree', 'rattach', 'compos', 'id_paysage_ing', 'id_paysage_ing_campus']],
+                how='left', on=['rentree', 'rattach', 'compos'])
+                .drop_duplicates())
+    return etab
 
 def enrich_paysage(etab):
     print(f"- size ETAB before paysage: {len(etab)}")
@@ -50,6 +65,10 @@ def enrich_paysage(etab):
     print(f"- size ETAB after id_paysage: {len(etab)}")
     etab = from_id_to_lib(etab)
     print(f"- size ETAB after lib_paysage: {len(etab)}")
-    etab = enrich_d_epe(etab)
+    etab = d_epe_enrich(etab)
+    print(f"- size ETAB after enrich_d_epe: {len(etab)}")
+    etab = iut_enrich(etab)
+    print(f"- size ETAB after enrich_d_epe: {len(etab)}")
+    etab = ing_enrich(etab)
     print(f"- size ETAB after enrich_d_epe: {len(etab)}")
     return etab
