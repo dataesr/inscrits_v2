@@ -1,21 +1,24 @@
 from modules.cleansing import *
 from modules.enrichment import *
+from utils.functions_shared import *
+
 #################################################################################################################
 ### COMPLETE ####################################################################################################
 def data_result(df, etab, meef):
     import pandas as pd, numpy as np
 
-    # df = delete(df)
-
     # ETABLI & COMPOS & RATTACH
-    df['etabli_ori_uai'] = df['etabli']
     df = df.drop(columns='rattach')
-    df = df.rename(columns={'etabli':'etabli_orig', 'compos':'compos_orig'})
-    df = (df.merge(etab[['rentree', 'etabli_orig', 'etabli', 'compos_orig', 'compos', 'rattach', 'id_paysage', 'lib_paysage', 'id_paysage_epe']], 
-                how='left', on=['rentree', 'etabli_orig', 'compos_orig'])
+    df = df.rename(columns={'etabli':'etabli_ori_uai', 'compos':'compos_ori_uai'})
+
+    et = etab[['rentree', 'etabli_ori_uai', 'etabli', 'compos_ori_uai', 'compos', 'rattach', 
+                'id_paysage', 'lib_paysage', 'id_paysage_epe', 'id_paysage_iut', 'id_paysage_iut_campus',
+                'id_paysage_iut_pole', 'id_paysage_ing', 'id_paysage_ing_campus']]
+
+    df = (df.merge(et, how='left', on=['rentree', 'etabli_ori_uai', 'compos_ori_uai'])
             .rename(columns={'compos':'ui', 'rattach':'ur'})
         )
-    df = df.loc[:, ~df.columns.str.contains('_orig')]
+    df = df.loc[:, ~df.columns.str.contains('compos_ori_uai')]
 
     # remove etabli without id_paysage
     df.loc[df.id_paysage=='', 'id_paysage'] = np.nan
@@ -24,61 +27,62 @@ def data_result(df, etab, meef):
         print(f"- etabli without id_paysage by source: {x.source.value_counts()}")
         df = df.loc[~((df.source.isin(['mana', 'culture', 'enq26bis']))&(df.id_paysage.isnull()))]
     
-    print(f"- size after remove etabli without paysage: {len(df)}")
+    print(f"- size after add etab but remove etabli without id_paysage: {len(df)}")
+
+    df_size_ori = len(df)
+    no_same_size(df_size_ori, df)
 
     # ETABLI_DIFFUSION
     try:
         df = df.merge(meef, how='left').drop(columns='etabli_diffusion').rename(columns={'new_lib':'etabli_diffusion'})
     except KeyError:
         return print(f'no etabli_diffusion into sise {df.rentree.unique()}')
-    
+    no_same_size(df_size_ori, df)
     ##########################
-    # df = df.mask(df=='')
-
+ 
     effectif_clean(df)
 
-    df = inspr_clean(df)
-    df = diplom_empty(df)
-    df = diplom_to_vars_bcn(df)
-    df = sectdis_clean(df)
-    df = groupe_clean(df)
-    df = niveau_clean(df)
-    df = cursus_clean(df)
-    df = curpar_clean(df)
-    df = amena_clean(df)
-    df = conv_clean(df)
-    df = degetu_clean(df)
-    df = ed_clean(df)
-    df = exoins_clean(df)
-    df = echang_clean(df)
-    
-    df = bac_clean(df)
-    df = bac_regroup_clean(df)
-    df = dep_clean(df)
-    df = aca_clean(df)
-    df = situpre_clean(df)
-    df = country_clean(df)
-    df = pcs_clean(df)
+    func_list = [
+    inspr_clean,
+    diplom_empty,
+    diplom_to_vars_bcn,
+    sectdis_clean,
+    groupe_clean,
+    niveau_clean,
+    cursus_clean,
+    curpar_clean,
+    amena_clean,
+    conv_clean,
+    degetu_clean,
+    ed_clean,
+    exoins_clean,
+    echang_clean,
+    bac_clean,
+    bac_regroup_clean,
+    dep_clean,
+    aca_clean,
+    situpre_clean,
+    country_clean,
+    pcs_clean,
+    comins_clean,
+    cometa_clean,
+    discpli_enrich,
+    niveau_retard_avance,
+    dndu_enrich,
+    lmd_enrich,
+    ed_enrich,
+    dutbut_enrich,
+    communes_enrich,
+    prox_enrich,
+    deptoreg,
+    country_enrich,
+    nation_bac_add,
+    mobilite_add,
+    effectifs
+    ]
 
-    df = comins_clean(df) # COMUI
-    df = cometa_clean(df)
-
-    df = fresq_enrich(df)
-    df = discpli_enrich(df)
-    df = niveau_retard_avance(df)
-    df = dndu_enrich(df)
-    df = lmd_enrich(df)
-    df = ed_enrich(df)
-    df = iut_enrich(df)
-    df = ing_enrich(df)
-    df = dutbut_enrich(df)
-    df = communes_enrich(df)
-    df = prox_enrich(df)
-    df = deptoreg(df)
-    df = country_enrich(df)
-    df = nation_bac_add(df)
-    df = mobilite_add(df)
-    df = effectifs(df)
-    
+    for func in func_list:
+        df = func(df)
+        no_same_size(df_size_ori, df)
     return df
 
