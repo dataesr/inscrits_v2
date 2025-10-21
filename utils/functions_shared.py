@@ -98,17 +98,15 @@ def data_save_by_year(rentree, df, filename, zip_path):
     except Exception as e:
         print(f"Error deleting {parquet_name}: {e}")
 
-
-def check_items_list(df):
-    import pandas as pd
-    df_items = pd.DataFrame()
-    for i in df.columns.difference(['rentree', 'source']):
-        tmp = df.groupby(['rentree', 'source'])[i].value_counts(dropna=False).reset_index().rename(columns={i:'item'}).assign(variable=i)
-        df_items = pd.concat([df_items, tmp])
-        df_items.mask(df_items=='', inplace=True)
-    return df_items
-
 def replace_by_nan(serie: pd.Series) -> pd.Series:
     import numpy as np
     """Remplace None et "" par np.nan dans une série pandas."""
     return serie.replace([None, ""], np.nan)
+
+def no_same_size(df_size_ori, df):
+    try:
+        if df_size_ori != len(df):
+            raise ValueError(f"ATTENTION ! La taille du DataFrame a changé de {df_size_ori - len(df)} lignes.")
+    except ValueError as e:
+        print(e)
+        raise  # Relance l'exception pour arrêter le script
