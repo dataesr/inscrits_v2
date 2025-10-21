@@ -37,6 +37,12 @@ def from_id_to_lib(etab):
     etab = etab.merge(c_etab, how='left', on='id_paysage')
     return etab.drop(columns='paysage_count')
 
+def enrich_d_epe(df):
+    epe =  pd.DataFrame(CORRECTIFS_dict['D_EPE'])
+    epe['rentree'] = epe.rentree.astype(int)
+    df = pd.merge(df, epe[['rentree', 'id_paysage', 'id_paysage_epe']], on=['rentree', 'id_paysage'], how='left')
+    return df
+
 
 def enrich_paysage(etab):
     print(f"- size ETAB before paysage: {len(etab)}")
@@ -44,4 +50,6 @@ def enrich_paysage(etab):
     print(f"- size ETAB after id_paysage: {len(etab)}")
     etab = from_id_to_lib(etab)
     print(f"- size ETAB after lib_paysage: {len(etab)}")
+    etab = enrich_d_epe(etab)
+    print(f"- size ETAB after enrich_d_epe: {len(etab)}")
     return etab
