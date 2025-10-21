@@ -4,20 +4,11 @@ from utils.functions_shared import replace_by_nan
 import json, pandas as pd, numpy as np
 
 
-# FRESQ
-def fresq_enrich(df):
-    print(f"- FRESQ enrich")
-    uai_fresq = pd.DataFrame(CORRECTIFS_dict['O_INF_FRESQ']).assign(rentree=lambda x: x['rentree'].astype(int))
-    df = df.merge(uai_fresq, how='left', left_on=['rentree', 'ur', 'diplom'], right_on=['rentree', 'rattach', 'diplom'])
-    return df
-
-
 def discpli_enrich(df):
     print("- GDDISC add")
     gd_disc=pd.DataFrame(CORRECTIFS_dict['DISCIPLINES_SISE'])[['gddisc','sectdis']]
     df = df.merge(gd_disc, how= 'left', on='sectdis') 
     return df
-
 
 def niveau_retard_avance(df):
     print("- niveau_retard_avance")
@@ -53,7 +44,6 @@ def niveau_retard_avance(df):
 
     return df
 
-
 def dndu_enrich(df):
     print("- DNU enrich")
     df_dndu =  pd.DataFrame(CORRECTIFS_dict['I_DNDU'])
@@ -61,7 +51,6 @@ def dndu_enrich(df):
     df['dndu'] = replace_by_nan(df['dndu'])
     df.loc[df.dndu.isnull(), 'dndu']='DN'
     return df
-
 
 def lmd_enrich(df):
     print("- LMD enrich")
@@ -81,24 +70,10 @@ def lmd_enrich(df):
 
     return df
 
-
 def ed_enrich(df):
     print("- ED enrich")
     df_ed =  pd.DataFrame(CORRECTIFS_dict['L_ED'])
     df = pd.merge(df, df_ed[['numed', 'id_paysage_ed']], how='left', on='numed')
-    return df
-
-def iut_enrich(df):
-    df_iut =  pd.DataFrame(CORRECTIFS_dict['M_IUT']).assign(rentree=lambda x: x['rentree'].astype(int))
-    df = df.merge(df_iut[['rentree', 'ur', 'ui', 'id_paysage_iut', 'id_paysage_iut_campus', 'id_paysage_iut_pole']],
-                how='left', on=['rentree', 'ur', 'ui'])
-    return df
-
-def ing_enrich(df):
-    df_ing =  pd.DataFrame(CORRECTIFS_dict['N_ING']).assign(rentree=lambda x: x['rentree'].astype(int))
-
-    df = df.merge(df_ing[['rentree', 'ur', 'ui', 'id_paysage_ing', 'id_paysage_ing_campus']],
-                 how='left', on=['rentree', 'ur', 'ui'])
     return df
 
 def dutbut_enrich(df):
@@ -109,7 +84,6 @@ def dutbut_enrich(df):
         df[c] = replace_by_nan(df[c])
         df.loc[df[c].isnull(), c] = 'AUTRES'
     return df  
-
 
 def communes_enrich(df):
     df_communes =  pd.DataFrame(CORRECTIFS_dict['LES_COMMUNES'])
@@ -150,14 +124,12 @@ def prox_enrich(df):
     df.loc[(df.bac_rgrp=='7'), 'outremer'] = 'non-bachelier'
     return df
 
-
 def deptoreg(df):
     deptoreg = pd.DataFrame(CORRECTIFS_dict['DEPTOREG'])
     df = df.merge(deptoreg, how='left', left_on='deprespa', right_on='in').drop(columns={'in'}).rename(columns={'out':'regrespa'})
     deptoregnew = pd.DataFrame(CORRECTIFS_dict['DEPTOREGNEW'])
     df = df.merge(deptoregnew, how='left', left_on='deprespa', right_on='in').drop(columns={'in'}).rename(columns={'out':'regrespa16'})
     return df
-
 
 def country_enrich(df):
     print("- COUNTRY enrich")
@@ -193,6 +165,11 @@ def effectifs(df):
     df.loc[(df.inspr!='O'), 'effs'] = 1
     df.loc[:, 'efft'] = 1
  
+    mask = (df.typ_dipl=='PJ')
+    df['eff_dei'] = np.where(mask, 1, 0)
+    for i in ['effectif', 'effs', 'efft', 'nbach']:
+        df.loc[mask, i] = 0
+
     df = df.assign(effectif_cesure = np.where(df.amena=='3', df.effectif, 0))
     df = df.assign(nbach_cesure = np.where(df.amena=='3', df.nbach, 0))
 
@@ -202,13 +179,10 @@ def effectifs(df):
     df.loc[mask, 'efft_ss_cpge']=0
     df.loc[mask, 'effs_ss_cpge']=0
 
-    mask2 = (df.conv!='P') & (df.curpar!='02')
-    df.loc[mask2, 'eff_ss_cpge']=df.loc[mask2, 'effectif']
-    df.loc[mask2, 'nbach_ss_cpge']=df.loc[mask2, 'nbach']
-    df.loc[mask2, 'efft_ss_cpge']=df.loc[mask2, 'efft']
-    df.loc[mask2, 'effs_ss_cpge']=df.loc[mask2, 'effs']
-    return df
+    mask = (df.conv!='P') & (df.curpar!='02')
+    df.loc[mask, 'eff_ss_cpge']=df.loc[mask, 'effectif']
+    df.loc[mask, 'nbach_ss_cpge']=df.loc[mask, 'nbach']
+    df.loc[mask, 'efft_ss_cpge']=df.loc[mask, 'efft']
+    df.loc[mask, 'effs_ss_cpge']=df.loc[mask, 'effs']
 
-# def vars_create(df):
-#     df['etabli_ori_uai'] = df['etabli']
-#     return df
+    return df
