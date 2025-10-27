@@ -5,15 +5,12 @@ def get_all_correctifs_from_google():
     url=f"https://docs.google.com/spreadsheet/ccc?key={os.environ.get('GOOGLE_KEY')}&output=xls"
 
     CORRECTIFS_dict = {}
-    # VARS = ['ETABLI', 'A_UAI', 'C_ETABLISSEMENTS', 'D_EPE', 'E_FORM_ENS', 'DEP_ACA_RESPA_CORRECTIF',
-    #       'F_RENTREES', 'G_PAYS', 'H_PROXIMITE', 'I_DNDU', 'J_LMDDONT', 'DISCIPLINES_SISE', 'ETABLI_SOURCE',
-    #      'L_ED', 'M_IUT', 'N_ING', 'O_DUTBUT', 'LES_COMMUNES', 'DEPTOREG', 'CORRLMD', 'DEPTOREGNEW',
-    #      'ETABLI_DIFFUSION_ID', 'FORMATIONS_CORRECTIF', 'CURSUS_LMD_CORRECTIF', 'RESTE_DEPRESPA_CORRECTIF',
-    #      'DEP_CORRECTIF', 'ACA_CORRECTIF', 'GROUPE_CORRECTIF', 'COMINS', 'COMUI', 'COMETAB', 'delete']
     VARS=['LES_COMMUNES', 'COMINS', 'COMETAB', 'A_UAI', 'C_ETABLISSEMENTS', 'ETABLI_DIFFUSION_ID', 
-          'delete', 'GROUPE_CORRECTIF', 'O_INF_FRESQ', 'DISCIPLINES_SISE', 'G_PAYS', 'CORRLMD', 
+          'delete', 'GROUPE_CORRECTIF', 'O_INF_FRESQ', 'G_PAYS', 'CORRLMD', 'LMDDONTBIS',
           'CURSUS_LMD_CORRECTIF', 'A_COMETA', 'DEP_ACA_CORRECTIF', 'I_DNDU', 'J_LMDDONT', 'L_ED',
-          'D_EPE', 'M_IUT', 'N_ING', 'O_DUTBUT', 'H_PROXIMITE', 'DEPTOREGNEW', 'DEPTOREG']
+          'D_EPE', 'M_IUT', 'N_ING', 'O_DUTBUT', 'H_PROXIMITE', 'DEPTOREGNEW', 'DEPTOREG', 'SEXE',
+          'BAC_RGRP', 'AVANCE_RETARD', 'PROXBAC', 'PROXREGBAC', 'ATTRAC_INTERN', 'MOBILITE_INTERN',
+          'NIVEAU', 'DEGETU', 'SECTDIS', 'SPECIUT', 'DNDU', 'CURSUS_LMD']
     df_c = pd.read_excel(url, sheet_name=VARS, dtype=str, na_filter=False)
     for VAR in VARS:
         # logger.debug(f"loading {VAR}...")
@@ -32,18 +29,3 @@ def get_all_correctifs_from_google():
                    
         CORRECTIFS_dict[f'{VAR}'] = correctifs
     json.dump(CORRECTIFS_dict, open(f'{PATH_NOMEN}correctifs.json', 'w'))
-
-
-# def get_all_correctifs():
-#     with open(f'{PATH_NOMEN}correctifs.json', "r") as f:
-#         file = json.load(f)
-#         correctifs = file.copy()
-
-#     # for key in correctifs.keys():
-#     #     df = pd.DataFrame(data=correctifs[key])
-#     #     df = df.drop_duplicates()
-#     #     df.columns = df.columns.str.lower()
-#     #     dico = df.to_dict(orient="records")
-#     #     correctifs[key] = dico
-        
-#     return correctifs
