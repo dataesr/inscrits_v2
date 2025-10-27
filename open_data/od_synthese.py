@@ -16,8 +16,9 @@ def create_od_synthese(df):
           .reset_index()
     )
 
+    mask = (~df['etablissement_compos_lib'].isnull())&(df['etablissement_id_paysage'] != df['etablissement_compos_id_paysage'])
 
-    d02 = (df.loc[(~df['etablissement_compos_lib'].isnull())&(df['etablissement_id_paysage'] != df['etablissement_compos_id_paysage'])&(df['etablissement_id_paysage'].isin(etab.loc[etab['operateur_lolf_150']=='O', 'id_paysage'].unique()))]
+    d02 = (df.loc[mask&(df['etablissement_id_paysage'].isin(etab.loc[etab['operateur_lolf_150']=='O', 'id_paysage'].unique()))]
            .groupby(['rentree', 'annee_universitaire', 'annee', 'etablissement_id_paysage', 'etablissement_lib', 'etablissement_compos_id_paysage', 'etablissement_compos_lib'], dropna=False)[vn].sum()
            .reset_index()
            .drop(columns=['etablissement_id_paysage', 'etablissement_lib'])
@@ -31,9 +32,8 @@ def create_od_synthese(df):
     ve = cols_selected['etab_vars_synth']
     d00 = df[ve].drop_duplicates()
 
-    d002 = (df.loc[(~df['etablissement_compos_lib'].isnull())&(df['etablissement_id_paysage'] != df['etablissement_compos_id_paysage']),
+    d002 = (df.loc[mask,
                   ['rentree', 'etablissement_id_paysage', 'etablissement_lib', 'etablissement_compos_id_paysage', 'etablissement_compos_lib']].drop_duplicates()
             .drop(columns=['etablissement_id_paysage', 'etablissement_lib'])
-           .rename(columns={'etablissement_compos_id_paysage':'etablissement_id_paysage', 'etablissement_compos_lib':'etablissement_lib'})
-           .assign(etablissement_lib = df['etablissement_lib'] + " *"))
-
+            .rename(columns={'etablissement_compos_id_paysage':'etablissement_id_paysage', 'etablissement_compos_lib':'etablissement_lib'})
+            .assign(etablissement_lib = df['etablissement_lib'] + " *"))
