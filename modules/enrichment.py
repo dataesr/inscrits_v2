@@ -4,12 +4,6 @@ from utils.functions_shared import replace_by_nan
 import json, pandas as pd, numpy as np
 
 
-def discpli_enrich(df):
-    print("- GDDISC add")
-    gd_disc=pd.DataFrame(CORRECTIFS_dict['DISCIPLINES_SISE'])[['gddisc','sectdis']]
-    df = df.merge(gd_disc, how= 'left', on='sectdis') 
-    return df
-
 def niveau_retard_avance(df):
     print("- niveau_retard_avance")
     mask_typ_dipl = (df.typ_dipl.isin(['AC','XE','CB','XA','XB','XD','DR']))
@@ -23,24 +17,23 @@ def niveau_retard_avance(df):
 
     back = df.rentree.unique()[0]
     if back < 2012:
-        mask_rentree = (df.rentree<2012)
-        mask_bac_rgp = (df.bac_rgrp.isin(["A", "1", "2", "3", "4", "5"]))
+        mask_bac_rgp = (df.bac_rgrp.isin(["A", "1", "2", "3", "4", "5", "9"]))
     else:
-        mask_rentree = (df.rentree>2011)
-        mask_bac_rgp = (df.bac_rgrp.isin(["A", "1", "2", "3", "4", "5", "6"]))
+        mask_bac_rgp = (df.bac_rgrp.isin(["A", "1", "2", "3", "4", "5", "6", "9"]))
 
-    df.loc[mask_rentree & mask_bac_rgp & mask_age_retard, 'retard']='O'
-    df.loc[mask_rentree & mask_bac_rgp & ~mask_age_retard, 'retard']='N'
-    df.loc[mask_rentree & mask_bac_rgp & mask_age_avance, 'avance']='O'
-    df.loc[mask_rentree & mask_bac_rgp & ~mask_age_avance, 'avance']='N'
-    df.loc[mask_rentree & (df.anbac!=-1 | ~mask_bac_rgp), 'retard']="X"
-    df.loc[mask_rentree & (df.anbac!=-1 | ~mask_bac_rgp), 'avance']="X"
+    df.loc[mask_bac_rgp & mask_age_retard, 'retard']='O'
+    df.loc[mask_bac_rgp & ~mask_age_retard, 'retard']='N'
+    df.loc[mask_bac_rgp & mask_age_avance, 'avance']='O'
+    df.loc[mask_bac_rgp & ~mask_age_avance, 'avance']='N'
 
     if back < 2012:
-        df.loc[mask_rentree & (df.bac_rgrp=='6') & (df.age_bac>19), 'retard']='O'
-        df.loc[mask_rentree & (df.bac_rgrp=='6') & (df.age_bac<20), 'retard']='N'
-        df.loc[mask_rentree & (df.bac_rgrp=='6') & (df.age_bac<21), 'avance']='O'
-        df.loc[mask_rentree & (df.bac_rgrp=='6') & (df.age_bac>20), 'avance']='N'
+        df.loc[(df.bac_rgrp=='6') & (df.age_bac>19), 'retard']='O'
+        df.loc[(df.bac_rgrp=='6') & (df.age_bac<20), 'retard']='N'
+        df.loc[(df.bac_rgrp=='6') & (df.age_bac<21), 'avance']='O'
+        df.loc[(df.bac_rgrp=='6') & (df.age_bac>20), 'avance']='N'
+
+    df.loc[(df.anbac==-1) | (df.age_bac<10), 'retard']="X"
+    df.loc[(df.anbac==-1) | (df.age_bac<10), 'avance']="X"
 
     return df
 
@@ -74,6 +67,7 @@ def ed_enrich(df):
     print("- ED enrich")
     df_ed =  pd.DataFrame(CORRECTIFS_dict['L_ED'])
     df = pd.merge(df, df_ed[['numed', 'id_paysage_ed']], how='left', on='numed')
+    df['id_paysage_ed'] = replace_by_nan(df['id_paysage_ed']) 
     return df
 
 def dutbut_enrich(df):
@@ -103,7 +97,7 @@ def prox_enrich(df):
     df_proximite['deprespa'] = df_proximite['departement_parents']
     df_proximite['proximite'] = df_proximite['proximit_']
     df_proximite['proxreg'] = df_proximite['prox_r_gions']
-    df = pd.merge(df, df_proximite[['depins', 'deprespa', 'proxreg', 'proximite']], how='left' ,on=['depins', 'deprespa'])
+    df = pd.merge(df, df_proximite[['depins', 'deprespa', 'proxreg', 'proximite']], how='left' , on=['depins', 'deprespa'])
     
     df_proximite['proxbac'] = df_proximite['proximit_']
     df_proximite['proxregbac'] = df_proximite['prox_r_gions']
