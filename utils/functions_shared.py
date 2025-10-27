@@ -45,17 +45,33 @@ def last_year_into_zip(path, prefix):
 
 
 def get_individual_source(zip_full_path, source, rentree):
-    import pandas as pd, zipfile
+    import pandas as pd, zipfile, pickle, os
 
     filename = f'{source}{str(rentree)[2:4]}'
     print(filename)
 
     with zipfile.ZipFile(zip_full_path, 'r') as z:
-        df = pd.read_parquet(z.open(f'{filename}.parquet'), engine='pyarrow')
-    
-    print(f"- {rentree} -> size: {len(df)}")
+        file_list = z.namelist()
+        matching_files = [f for f in file_list if f.startswith(filename)]
+        file_to_load = matching_files[0]
+        extension = os.path.splitext(file_to_load)[1][1:] 
 
-    return df
+        try:
+            # Vérifie l'extension du fichier
+            if extension == 'parquet':
+                df = pd.read_parquet(z.open(file_to_load), engine='pyarrow')
+                print(f"- {rentree} -> size: {len(df)}")
+                return df
+            elif extension in ('pkl', 'pickle'):
+                df = pd.read_pickle(z.open(file_to_load), compression='gzip')
+                print(f"- {rentree} -> size: {len(df)}")
+                return df
+            else:
+                print(f"Format de fichier non supporté : {extension}")
+                return None
+        except Exception as e:
+            print(f"Erreur lors du chargement du fichier {file_to_load}: {e}")
+            return None
 
 
 def work_csv(df, file_csv_name):
@@ -76,27 +92,28 @@ def work_csv(df, file_csv_name):
 
 def data_save_by_year(rentree, df, filename, zip_path):
     from config_path import PATH
-    import os, zipfile
+    import os, zipfile, pickle
 
     if not os.path.exists(f'{PATH}output'):
         print("folder OUTPUT creates into DATA_PATH")
     # Create a new directory because it does not exist
         os.mkdir(f'{PATH}output')
         
-    parquet_name = f'{filename}{str(rentree)[2:4]}.parquet'
-    df.to_parquet(parquet_name, compression='gzip')
+    file_name = f'{filename}{str(rentree)[2:4]}.pkl'.encode('utf-8').decode('utf-8')
+    df.to_pickle(file_name, compression='gzip')
 
-    print(f"Creating the parquet-files by year {parquet_name} into zip in OUTPUT")
+
+    print(f"Creating the pickle-files by year {file_name} into zip in OUTPUT")
     
     with zipfile.ZipFile(zip_path, 'a') as z:
-        z.write(parquet_name)
+        z.write(file_name)
         
     # Delete the parquet file after adding it to the ZIP
     try:
-        os.remove(parquet_name)
-        print(f"Deleted: {parquet_name}")
+        os.remove(file_name)
+        print(f"Deleted: {file_name}")
     except Exception as e:
-        print(f"Error deleting {parquet_name}: {e}")
+        print(f"Error deleting {file_name}: {e}")
 
 
 def replace_by_nan(serie: pd.Series) -> pd.Series:
@@ -112,3 +129,21 @@ def no_same_size(df_size_ori, df):
     except ValueError as e:
         print(e)
         raise  # Relance l'exception pour arrêter le script
+
+
+def yaml_file(df_cols, list_name: str):
+    import yaml
+    if type(df_cols) is list:
+        cols_name = sorted(df_cols)
+    else:
+        cols_name = sorted(df_cols.tolist())
+    with open("utils/variables_selection.yaml", "a") as file:
+        yaml.dump({list_name: cols_name}, file, default_flow_style=False)
+
+
+cols_selected = {}
+def load_list_vars():
+    import yaml
+    with open("utils/variables_selection.yaml", "r")  as f:
+        cols_selected.update(yaml.safe_load(f))
+load_list_vars()
