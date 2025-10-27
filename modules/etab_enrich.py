@@ -1,6 +1,6 @@
 from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
 import pandas as pd
-from utils.functions_shared import work_csv
+from utils.functions_shared import work_csv, replace_by_nan
 
 
 def from_uai_to_paysage(etab): 
@@ -71,4 +71,7 @@ def enrich_paysage(etab):
     print(f"- size ETAB after enrich_d_epe: {len(etab)}")
     etab = ing_enrich(etab)
     print(f"- size ETAB after enrich_d_epe: {len(etab)}")
+
+    for i in ['id_paysage_epe', 'id_paysage_iut', 'id_paysage_iut_campus', 'id_paysage_iut_pole', 'id_paysage_ing', 'id_paysage_ing_campus']:
+        etab[i] = replace_by_nan(etab[i]) 
     return etab
