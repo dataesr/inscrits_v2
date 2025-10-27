@@ -1,7 +1,7 @@
 from config_path import PATH
 from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
 from utils.functions_shared import replace_by_nan
-import json, pandas as pd
+import json, pandas as pd, numpy as np
 
 
 
@@ -181,7 +181,7 @@ def bac_regroup_clean(df):
         print("- BAC_RGRP not clean")   
     return df
 
-def dep_clean(df):
+def bac_loc_clean(df):
     dep_dict = {
     item['depbac_deprespa_in']: item['depbac_deprespa_out']
     for item in CORRECTIFS_dict['DEP_ACA_CORRECTIF']
@@ -191,25 +191,42 @@ def dep_clean(df):
         print("- DEP clean")
         for i in ['deprespa', 'depbac']:
             df[i] = df[i].replace(dep_dict)
+            df.loc[df[i]=="-1", i] = '999'
+        
+        # si depbac = etranger mais acabac est localisé en FR -> redressement de depbac en FR non idenrifié
+        df.loc[(df.depbac=='999')&(~df.acabac.isin(['00', '-1'])), 'depbac'] = '000'
     except:
         print("- DEP not clean")
     
-    return df
-
-def aca_clean(df):
     aca_dict = {
     item['depbac_deprespa_out']: item['acarespa_acabac']
     for item in CORRECTIFS_dict['DEP_ACA_CORRECTIF']
         }
-    
+
+    print("-- fix depbac with acabac")
+    aca_df = pd.DataFrame(CORRECTIFS_dict['LES_COMMUNES'])[['dep_code', 'aca_code']].drop_duplicates()
+    # conserver les acabac qui ne contiennent qu'un seul département et remplacer depbac='000' par ce dep_code
+    aca_df = aca_df.groupby(['aca_code']).filter(lambda x: x['dep_code'].count() == 1.)
+    aca_df['dep_code'] = aca_df['dep_code'].str.zfill(3)
+    df = df.merge(aca_df, how='left', left_on='acabac', right_on='aca_code')
+    df.loc[(df.depbac=='000')&(~df.dep_code.isnull()), 'depbac'] = df.loc[(df.depbac=='000')&(~df.dep_code.isnull()), 'dep_code']
+    df = df.drop(columns=['dep_code', 'aca_code'])
+
     try:
         print("- ACA clean")
-        for i in ['acabac']:
-            df[i] = df[i].replace(aca_dict)
+        df['ac'] = df['depbac'].replace(aca_dict)
+        # si depbac FR non identifié ('000') mais acabac connu conserver acabac
+        df.loc[(~df.acabac.isin(['-1', '00']))&(df.ac!=df.acabac)&(df.ac=='99')&(df.depbac=='000'), 'ac'] = df.loc[(df.acabac!='-1')&(df.ac!=df.acabac)&(df.ac=='99')&(df.depbac=='000'), 'acabac'] 
+        
+        df = df.drop(columns='acabac').rename(columns={'ac':'acabac'})
     except:
         print("- ACA not clean")
     
     return df
+
+
+#####################################################
+## FORMATION ########################################
 
 def situpre_clean(df):
     try:
@@ -220,8 +237,6 @@ def situpre_clean(df):
         print("- SITUPRE not clean")   
     return df
 
-#####################################################
-## FORMATION ########################################
 # NUMED
 def ed_clean(df):
     try:
@@ -275,16 +290,16 @@ def diplom_to_vars_bcn(df):
     return df
 
 def sectdis_clean(df):
+    dd = (pd.DataFrame(CORRECTIFS_dict['SECTDIS'])[['sectdis', 'discipline']]
+             .rename(columns={'discipline':'discipli'}))
+    
     print(f"- SECTDIS clean")
     df.loc[df.sectdis.isin(['44','45','46','47','48']), 'sectdis']="39"
+    sl = list(dd.sectdis)
+    df.loc[~df.sectdis.isin(sl), 'sectdis'] = '99'
 
     print("- DISCIPLI add")
-    dd = (BCN['N_SECTEUR_DISCIPLINAIRE_SISE'][['secteur_disciplinaire_sise', 'discipline_sise']]
-             .rename(columns={
-                'secteur_disciplinaire_sise':'sectdis',
-                'discipline_sise':'discipli'
-         }))
-    df = df.merge(dd, how='left', on='sectdis')
+    df = df.merge(dd, how='left', on='sectdis')   
     return df
 
 def groupe_clean(df):
