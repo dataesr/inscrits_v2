@@ -8,28 +8,30 @@ def data_result(df, etab, meef):
     import pandas as pd, numpy as np
 
     # ETABLI & COMPOS & RATTACH
-    df = df.drop(columns='rattach')
-    df = df.rename(columns={'etabli':'etabli_ori_uai', 'compos':'compos_ori_uai'})
+    df = df.drop(columns=['rattach', 'comins'])
+    df = df.rename(columns={'etabli':'etabli_ori_uai', 'compos':'compos_ori_uai', 'cometa':'cometa_orig'})
 
-    et = etab[['rentree', 'etabli_ori_uai', 'etabli', 'compos_ori_uai', 'compos', 'rattach', 
-                'id_paysage', 'lib_paysage', 'id_paysage_epe', 'id_paysage_iut', 'id_paysage_iut_campus',
-                'id_paysage_iut_pole', 'id_paysage_ing', 'id_paysage_ing_campus']]
+    et = etab.loc[~((etab.source.isin(['mana', 'culture', 'enq26bis']))&(etab.id_paysage.isnull())),
+        ['rentree', 'etabli_ori_uai', 'etabli', 'compos_ori_uai', 'compos', 'rattach', 
+        'id_paysage_source', 'id_paysage', 'id_paysage_epe', 'id_paysage_iut', 'id_paysage_iut_campus',
+        'id_paysage_iut_pole', 'id_paysage_ing', 'id_paysage_ing_campus', 'id_paysage_epe_etab_compos',
+        'cometa', 'comui']].drop_duplicates()
 
-    df = (df.merge(et, how='left', on=['rentree', 'etabli_ori_uai', 'compos_ori_uai'])
+    df = (df.merge(et, how='inner', on=['rentree', 'etabli_ori_uai', 'compos_ori_uai'])
             .rename(columns={'compos':'ui', 'rattach':'ur'})
         )
     df = df.loc[:, ~df.columns.str.contains('compos_ori_uai')]
 
+    df_size_ori = len(df)
+
     # remove etabli without id_paysage
-    df.loc[df.id_paysage=='', 'id_paysage'] = np.nan
+    df['id_paysage'] = replace_by_nan(df['id_paysage'])
     if len(df.loc[df.id_paysage.isnull()])>0:
         x=df.loc[df.id_paysage.isnull(), ['rentree', 'source', 'etabli']].drop_duplicates()
         print(f"- etabli without id_paysage by source: {x.source.value_counts()}")
-        df = df.loc[~((df.source.isin(['mana', 'culture', 'enq26bis']))&(df.id_paysage.isnull()))]
+        # df = df.loc[~((df.source.isin(['mana', 'culture', 'enq26bis']))&(df.id_paysage.isnull()))]
     
     print(f"- size after add etab but remove etabli without id_paysage: {len(df)}")
-
-    df_size_ori = len(df)
     no_same_size(df_size_ori, df)
 
     # ETABLI_DIFFUSION
@@ -63,8 +65,6 @@ def data_result(df, etab, meef):
     situpre_clean,
     country_clean,
     pcs_clean,
-    comins_clean,
-    cometa_clean,
     niveau_retard_avance,
     dndu_enrich,
     lmd_enrich,
