@@ -3,11 +3,10 @@ import numpy as np, pandas as pd
 from utils.functions_shared import *
 from reference_data.ref_data_utils import CORRECTIFS_dict
 
-
-
 def tableau_adjust(df, va, vn):
-    df = df.assign(localisation = np.where(df['implantation_id_uucr']=="UU00851", df['implantation_code_commune'], df['implantation_id_uucr']),
-                          sexe=np.where(df['sexe']=="M", "1", "2")
+    df = df.assign(
+                localisation = np.where(df['implantation_id_uucr']=="UU00851", df['implantation_code_commune'], df['implantation_id_uucr']),
+                sexe = np.where(df['sexe']=="M", "1", "2")
                             )
 
     ar_dict = {item['bac_age']:item['avance_retard'] for item in CORRECTIFS_dict['AVANCE_RETARD']}
@@ -18,7 +17,6 @@ def tableau_adjust(df, va, vn):
            .reset_index())
     
     df = (df.rename(columns={
-            "etablissement_type":"typetab",
             "etablissement_id_paysage":"etabli",
             "implantation_id_departement":"depins",
             "bac":"bac_rgrp",
@@ -26,35 +24,30 @@ def tableau_adjust(df, va, vn):
             "sect_disciplinaire":"sectdis",
             "discipline":"discipli",
             "gd_discipline":"gddisc",
-            "attrac_intern_ue_27":"ue_27",
-            "attrac_intern_ocde_membres":"ocde_membres",
-            "attrac_intern_bologne":"bologne",
-            "attrac_intern_brics":"brics",
-            "effectif":"effectif",
-            "effectif_sans_cpge":"effectif_sans_cpge",
-            "nouv_bachelier":"nbach",
-            "nouv_bachelier_sans_cpge":"nbach_sans_cpge",
             "eff_dei":"effectif_dei"
-        }))
+            })
+        )
     return df
 
 def od_tableau(df):
     # sas opendata19 lignes 414
-    vn = cols_selected['tableau_num_short']
     va = cols_selected['tableau_vars_short']
+    vn = list(set(cols_selected['od_vars_num']) - {'efft', 'efft_ss_cpge'})
     tableau = df.loc[(df.rentree > 2017)&(df.operateur_lolf_150=='O')]
 
     # tableau 2
     tableau2 = tableau_adjust(tableau, va, vn)
-    path_export= f'{PATH}opendata/tableau2.pkl'
-    tableau2.to_pickle(path_export, compression='gzip')
+    path_export= f'{PATH}opendata/tableau2.txt'
+    tableau2.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
+    # tableau2.to_pickle(path_export, compression='gzip')
 
     # tableau 1
     # sas opendata lignes 321 -> 411
     va = [item for item in va if item not in {'optiut', 'parcoursbut'}]
     tableau1 = tableau_adjust(tableau, va, vn)
-    path_export= f'{PATH}opendata/tableau.pkl'
-    tableau1.to_pickle(path_export, compression='gzip')
+    path_export= f'{PATH}opendata/tableau.txt'
+    tableau1.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
+    # tableau1.to_pickle(path_export, compression='gzip')
 
 
     uo = tableau.etablissement_id_paysage.value_counts().reset_index(name='freq')
@@ -84,5 +77,6 @@ def od_tableau(df):
             .drop(columns=['com_code', 'com_nom', 'id_paysage', 'coordonnees'])
             )
  
-    path_export= f'{PATH}opendata/uo.pkl'.encode('utf-8').decode('utf-8')
-    uo.to_pickle(path_export, compression='gzip')
+    path_export= f'{PATH}opendata/uo.txt'.encode('utf-8').decode('utf-8')
+    uo.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
+    # uo.to_pickle(path_export, compression='gzip')
