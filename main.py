@@ -34,18 +34,16 @@ if CLEANING == True:
     if DEBUG == True:
         vars_sise_to_be_check(last_data_year, 'origin')
 
-    # Read sise PARQUET and write sise CLEANED pickle
-    zipin_path = os.path.join(PATH, f"output/sise_parquet_{last_data_year}.zip")
-    zipout_path = os.path.join(PATH, f"output/sise_cleaned_{last_data_year}.zip")
-
-
-    if DEBUG == True:
         cols_selected = yaml.safe_load(open("utils/variables_selection.yaml", "r"))
         df_all = pd.DataFrame()
         df_items = pd.DataFrame()
         df_com = pd.DataFrame()
         df_bac = pd.DataFrame()
 
+
+    # Read sise PARQUET and write sise CLEANED pickle
+    zipin_path = os.path.join(PATH, f"output/sise_parquet_{last_data_year}.zip")
+    zipout_path = os.path.join(PATH, f"output/sise_cleaned_{last_data_year}.zip")
 
     for rentree in ALL_RENTREES:
         df = get_individual_source(zipin_path, 'sise', rentree)
