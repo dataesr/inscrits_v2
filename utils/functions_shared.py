@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd, json
 
 def get_sources(annee):
     # selection des sources existantes en fonction des années
@@ -147,3 +147,51 @@ def load_list_vars():
     with open("utils/variables_selection.yaml", "r")  as f:
         cols_selected.update(yaml.safe_load(f))
 load_list_vars()
+
+
+
+def rattach_single_add(compos_uai, rattach_uai, range_years):
+
+    tmp=(
+        {
+            str(annee): {compos_uai: rattach_uai}
+            for annee in range_years
+        }
+    )
+
+    print(tmp)
+
+    map_dict = json.load(open("patches/rattach_patch.json", 'r'))
+
+    for annee, d in tmp.items():
+        if annee in map_dict:
+            # Récupérer le premier élément (clé) de d
+            premiere_cle = next(iter(d))
+            if premiere_cle in map_dict[annee]:
+                # Mettre à jour la valeur si la clé existe
+                map_dict[annee][premiere_cle] = d[premiere_cle]
+            else:
+                # Ajouter le dictionnaire si la clé n'existe pas
+                map_dict[annee].update(d)
+        else:
+            # Ajouter l'année et le dictionnaire si l'année n'existe pas
+            map_dict[annee] = d
+    
+    map_dict_trie = {annee: map_dict[annee] for annee in sorted(map_dict.keys(), key=int)}
+
+    with open('patches/rattach_patch.json', 'w') as f:
+        json.dump(map_dict_trie, f, indent=4)
+
+
+def rename_variables(df, category):
+
+    with open("utils/variables_rename.json", 'r', encoding='utf-8') as fichier:
+        mapping_json = json.load(fichier)
+
+    if category not in mapping_json:
+        raise ValueError(f"La catégorie '{category}' n'existe pas dans le JSON.")
+
+    mapping = mapping_json[category]
+    mapping_filtre = {cle: val for cle, val in mapping.items() if cle in df.columns}
+
+    return df.rename(columns=mapping_filtre)
