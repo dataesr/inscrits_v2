@@ -10,7 +10,7 @@ def get_all_correctifs_from_google():
           'CURSUS_LMD_CORRECTIF', 'A_COMETA', 'DEP_ACA_CORRECTIF', 'I_DNDU', 'J_LMDDONT', 'L_ED',
           'D_EPE', 'M_IUT', 'N_ING', 'O_DUTBUT', 'H_PROXIMITE', 'DEPTOREGNEW', 'DEPTOREG', 'SEXE',
           'BAC_RGRP', 'AVANCE_RETARD', 'PROXBAC', 'PROXREGBAC', 'ATTRAC_INTERN', 'MOBILITE_INTERN',
-          'NIVEAU', 'DEGETU', 'SECTDIS', 'SPECIUT', 'DNDU', 'CURSUS_LMD']
+          'NIVEAU', 'DEGETU', 'SECTDIS', 'SPECIUT', 'DNDU', 'CURSUS_LMD', 'TYP_DIPL']
     df_c = pd.read_excel(url, sheet_name=VARS, dtype=str, na_filter=False)
     for VAR in VARS:
         # logger.debug(f"loading {VAR}...")
