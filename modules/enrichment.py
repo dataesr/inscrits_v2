@@ -1,9 +1,78 @@
 from config_path import PATH
 from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
-from utils.functions_shared import replace_by_nan
+from utils.functions_shared import replace_by_nan, work_csv
 import json, pandas as pd, numpy as np
 
 
+######################################################################################
+# ETABISSEMENTS
+#####################################################################################
+def from_uai_to_paysage(etab): 
+    a_uai = pd.DataFrame(CORRECTIFS_dict['A_UAI'])
+    a_uai['rentree'] = a_uai['rentree'].astype(int)
+    tmp = a_uai.loc[a_uai.type=='inscri', ['rentree', 'source', 'etabli', 'id_paysage']].drop_duplicates()
+    tmp['paysage_count'] = (tmp.groupby(['rentree', 'source', 'etabli'], dropna=False)['id_paysage']
+                               .transform('count')
+                            )
+    if len(tmp.query('paysage_count>1'))>0:
+        print(f"- ATTENTION ++ id_paysage for etabli_uai: {tmp.query('paysage_count>1')}")
+
+    etab = etab.merge(tmp, how='left', on=['rentree', 'source', 'etabli'])
+
+    id_paysage_null = etab.loc[etab.id_paysage.isnull(), ['rentree', 'source', 'etabli', 'lib_etabli', 'etabli_valide']].drop_duplicates()
+    paysage_id = pd.DataFrame(PAYSAGE_dict['paysage_id'])
+    id_paysage_null = id_paysage_null.merge(paysage_id.loc[paysage_id.id_type=='uai'], how='left', left_on='etabli', right_on='id_value')[
+        ['rentree', 'source', 'etabli', 'etabli_valide', 'lib_etabli', 'id_paysage',
+        'usualname', 'active', 'id_startdate', 'id_enddate']]
+    if len(id_paysage_null)>0:
+        print("- ATTENTION, create file uai_paysage_missing_into_A_UAI for updating A_UAI")
+        work_csv(id_paysage_null, 'uai_paysage_missing_into_A_UAI')
+
+    return etab.drop(columns='paysage_count').drop_duplicates()
+
+def from_id_to_lib(etab):
+    c_etab = pd.DataFrame([{'id_paysage': i['id_paysage'], 'lib_paysage': i['uo_lib_courant']} for i in CORRECTIFS_dict['C_ETABLISSEMENTS']]).drop_duplicates()
+    c_etab['paysage_count'] = c_etab.groupby(['id_paysage'], dropna=False)['lib_paysage'].transform('count')
+    if len(c_etab.query('paysage_count>1'))>0:
+        print(f"- ATTENTION ++ lib_paysage for id_paysage: {c_etab.query('paysage_count>1')}")
+        
+    etab = etab.merge(c_etab, how='left', on='id_paysage')
+    return etab.drop(columns='paysage_count').drop_duplicates()
+
+def d_epe_enrich(etab):
+    epe =  pd.DataFrame(CORRECTIFS_dict['D_EPE']).assign(rentree=lambda x: x['rentree'].astype(int))
+    etab = (etab
+            .assign(id_paysage_source=etab['id_paysage'])
+            .merge(epe[['rentree', 'id_paysage', 'id_paysage_epe']], on=['rentree', 'id_paysage'], how='left')
+                .drop_duplicates())
+    
+    etab.loc[~etab['id_paysage_epe'].isnull(), 'id_paysage_epe_etab_compos'] = etab.loc[~etab['id_paysage_epe'].isnull(), 'id_paysage']
+    etab.loc[~etab['id_paysage_epe'].isnull(), 'id_paysage'] = etab.loc[~etab['id_paysage_epe'].isnull(), 'id_paysage_epe']
+
+    return etab.drop_duplicates()
+
+def iut_enrich(etab):
+    iut =  (pd.DataFrame(CORRECTIFS_dict['M_IUT'])
+            .assign(rentree=lambda x: x['rentree'].astype(int))
+            .rename(columns={'ur':'rattach', 'ui':'compos'}))
+    etab = (etab.merge(iut[['rentree', 'rattach', 'compos', 'id_paysage_iut', 'id_paysage_iut_campus', 'id_paysage_iut_pole']],
+                how='left', on=['rentree', 'rattach', 'compos'])
+    )
+    return etab.drop_duplicates()
+
+def ing_enrich(etab):
+    ing =  (pd.DataFrame(CORRECTIFS_dict['N_ING'])
+            .assign(rentree=lambda x: x['rentree'].astype(int))
+            .rename(columns={'ur':'rattach', 'ui':'compos'}))
+    etab = (etab.merge(ing[['rentree', 'rattach', 'compos', 'id_paysage_ing', 'id_paysage_ing_campus']],
+                how='left', on=['rentree', 'rattach', 'compos'])
+    )
+    return etab.drop_duplicates()
+
+
+#################################################################################################################################
+# ETUDIANTS
+##################################################################################################################################
 def niveau_retard_avance(df):
     print("- niveau_retard_avance")
     mask_typ_dipl = (df.typ_dipl.isin(['AC','XE','CB','XA','XB','XD','DR']))
@@ -54,10 +123,11 @@ def lmd_enrich(df):
     mask_dipl = (df.diplom.isin(['6001000','6004000','8000010']))
     df.loc[mask_dipl, 'lmddont'] = 'AUTRES'
     df.loc[mask_dipl, 'lmddontbis'] = 'AUTRES'
-    df.loc[df.dndu=='DU', 'lmddontbis'] = 'DU'
-
+    
+    df.loc[df.typ_dipl=='XA', 'lmddontbis'] = 'LIC_L_AUT'
     df.loc[(df.typ_dipl=='XA') & (df.par_type=='0001291'), 'lmddontbis'] = 'LIC_L_LAS'
-    df.loc[(df.typ_dipl=='XA') & (df.par_type!='0001291'), 'lmddontbis'] = 'LIC_L_AUT'
+    df.loc[(df.typ_dipl=='XA') & (df.par_type=='0001408'), 'lmddontbis'] = 'LIC_L_LSPS'
+    df.loc[(df.typ_dipl=='XA') & (df.par_type=='0001487'), 'lmddontbis'] = 'LIC_L_CPES' #classe préparatoire (généraliste) sensibilisation RU
     df.loc[(df.lmddont=='') | (pd.isna(df.lmddont)) | (df.lmddont.isnull()), 'lmddont'] = 'AUTRES'
     df.loc[(df.lmddontbis=='') | (pd.isna(df.lmddontbis)) | (df.lmddontbis.isnull()), 'lmddontbis'] = 'AUTRES'
 
@@ -112,8 +182,8 @@ def prox_enrich(df):
     df.loc[(df.depbac.isnull()) & (df.bac_rgrp!='7'), 'proxbac']= "5 - NR"
 
     df.loc[df.bac_rgrp=='7', 'proxregbac'] = '9 - non-bachelier'
-    df.loc[(df.bac_rgrp=='9') & ((df.proxregbac.isnull())), 'proxregbac']= "3 - NR"
-    df.loc[(df.depbac.isnull()) & (df.bac_rgrp!='7'), 'proxregbac']= "3 - NR"
+    df.loc[(df.bac_rgrp=='9') & ((df.proxregbac.isnull())), 'proxregbac']= "5 - NR"
+    df.loc[(df.depbac.isnull()) & (df.bac_rgrp!='7'), 'proxregbac']= "5 - NR"
     
     df.loc[(df.bac_rgrp=='7'), 'outremer'] = 'non-bachelier'
     return df
