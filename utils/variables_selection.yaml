@@ -1,5 +1,5 @@
 
-variables_all_num:
+variable_all_num:
 - ue_27
 - ue_28
 - bologne
@@ -17,7 +17,7 @@ variables_all_num:
 - nbach_ss_cpge
 - ocde_membres
 
-variables_all:
+variable_all:
 - acabac
 - age
 - age_bac
@@ -152,6 +152,7 @@ od_variables_init:
 - comui
 - cursus_lmd
 - degetu
+- diplom
 - dndu
 - eff_dei
 - eff_ss_cpge
@@ -162,12 +163,14 @@ od_variables_init:
 - id_paysage
 - id_paysage_ed
 - id_paysage_epe
+- id_paysage_epe_etab_compos
 - id_paysage_formens
 - id_paysage_ing
 - id_paysage_ing_campus
 - id_paysage_iut
 - id_paysage_iut_campus
 - id_paysage_iut_pole
+- id_paysage_source
 - lmddontbis
 - mobintern
 - nation_vrai
@@ -184,7 +187,23 @@ od_variables_init:
 - sectdis
 - sexe
 - speciut
+- typ_dipl
 - ue_27
+
+
+od_vars_num:
+- bologne
+- brics
+- ocde_membres
+- ue_27
+- eff_dei
+- effectif
+- eff_ss_cpge
+- efft
+- efft_ss_cpge
+- nbach
+- nbach_ss_cpge
+
 
 od_variables_first:
 - annee
@@ -192,21 +211,24 @@ od_variables_first:
 - attrac_intern
 - avance_retard
 - bac_rgrp
-- com_etab
-- com_ins
+- cometa
+- comui
 - cursus_lmd
 - degetu
+- diplom
 - dndu
 - etabli_ori_uai
 - id_paysage
 - id_paysage_ed
 - id_paysage_epe
+- id_paysage_epe_etab_compos
 - id_paysage_formens
 - id_paysage_ing
 - id_paysage_ing_campus
 - id_paysage_iut
 - id_paysage_iut_campus
 - id_paysage_iut_pole
+- id_paysage_source
 - lmddontbis
 - mobilite_intern
 - niveau
@@ -218,19 +240,8 @@ od_variables_first:
 - sectdis
 - sexe
 - speciut
+- typ_dipl
 
-od_vars_num:
-- attrac_intern_bologne
-- attrac_intern_brics
-- attrac_intern_ocde_membres
-- attrac_intern_ue_27
-- eff_dei
-- effectif
-- effectif_sans_cpge
-- effectif_total
-- effectif_total_sans_cpge
-- nouv_bachelier
-- nouv_bachelier_sans_cpge
 
 od_vars_odod:
 - annee
@@ -260,30 +271,21 @@ od_vars_odod:
 - dn_de
 - dn_de_lib
 - etablissement_academie
-- etablissement_actuel_lib
 - etablissement_code_commune
 - etablissement_commune
 - etablissement_compos_id_paysage
-- etablissement_compos_lib
 - etablissement_departement
 - etablissement_id_academie
 - etablissement_id_departement
 - etablissement_id_paysage
-- etablissement_id_paysage_actuel
+- etablissement_id_paysage_source
 - etablissement_id_region
-- etablissement_id_ror
-- etablissement_id_uai
 - etablissement_id_uai_source
 - etablissement_id_uucr
-- etablissement_id_wikidata
-- etablissement_lib
 - etablissement_localisation
 - etablissement_region
-- etablissement_type
-- etablissement_typologie
 - etablissement_uucr
 - form_ens_id_paysage
-- form_ens_lib
 - gd_discipline
 - gd_discipline_lib
 - implantation_academie
@@ -323,7 +325,6 @@ tableau_vars_short:
 - discipline
 - implantation_id_departement
 - etablissement_id_paysage
-- etablissement_type
 - gd_discipline
 - localisation
 - mobilite_intern
@@ -336,30 +337,30 @@ tableau_vars_short:
 - spec_iut
 
 
-tableau_num_short:
-- attrac_intern_bologne
-- attrac_intern_brics
-- attrac_intern_ocde_membres
-- attrac_intern_ue_27
-- eff_dei
-- effectif
-- effectif_sans_cpge
-- nouv_bachelier
-- nouv_bachelier_sans_cpge
+# tableau_num_short:
+# - attrac_intern_bologne
+# - attrac_intern_brics
+# - attrac_intern_ocde_membres
+# - attrac_intern_ue_27
+# - eff_dei
+# - effectif
+# - effectif_sans_cpge
+# - nouv_bachelier
+# - nouv_bachelier_sans_cpge
 
 
-typo_vars:
-- rentree
-- etablissement_id_paysage
-- etablissement_lib
-- etablissement_type
-- etablissement_typologie
-- etablissement_compos_lib
-- implantation_code_commune
-- implantation_commune
-- implantation_id_uucr
-- implantation_uucr
-- gd_discipline_lib
+# typo_vars:
+# - rentree
+# - etablissement_id_paysage
+# - etablissement_lib
+# - etablissement_type
+# - etablissement_typologie
+# - etablissement_compos_lib
+# - implantation_code_commune
+# - implantation_commune
+# - implantation_id_uucr
+# - implantation_uucr
+# - gd_discipline_lib
 
 
 od2_vars:
@@ -390,30 +391,21 @@ od2_vars:
 - dn_de
 - dn_de_lib
 - etablissement_academie
-- etablissement_actuel_lib
 - etablissement_code_commune
 - etablissement_commune
 - etablissement_compos_id_paysage
-- etablissement_compos_lib
 - etablissement_departement
 - etablissement_id_academie
 - etablissement_id_departement
 - etablissement_id_paysage
-- etablissement_id_paysage_actuel
+- etablissement_id_paysage_source
 - etablissement_id_region
-- etablissement_id_ror
-- etablissement_id_uai
 - etablissement_id_uai_source
 - etablissement_id_uucr
-- etablissement_id_wikidata
-- etablissement_lib
 - etablissement_localisation
 - etablissement_region
-- etablissement_type
-- etablissement_typologie
 - etablissement_uucr
 - form_ens_id_paysage
-- form_ens_lib
 - gd_discipline
 - gd_discipline_lib
 - id_paysage_ed
@@ -448,34 +440,71 @@ od2_vars:
 - spec_iut_lib
 - spec_iut_rgp_lib
 
-od2_vars_num:
-- eff_dei
-- effectif
-- effectif_sans_cpge
-- effectif_total
-- effectif_total_sans_cpge
-- nouv_bachelier
-- nouv_bachelier_sans_cpge
 
-etab_vars_synth:
-- rentree
-- etablissement_id_paysage
-- etablissement_lib
-- etablissement_type
-- etablissement_typologie
-- etablissement_id_uai
-- etablissement_id_wikidata
-- etablissement_id_ror
-- etablissement_localisation
+od_vars_diplom:
+- annee
+- annee_universitaire
+- correspondance_iut
+- cursus_lmd
+- cursus_lmd_lib
+- degetu
+- degetu_lib
+- discipline
+- discipline_lib
+- disciplines_selection
+- diplom
+- diplome
+- diplome_lib
+- diplome_rgp
+- dn_de
+- dn_de_lib
 - etablissement_code_commune
-- etablissement_commune
-- etablissement_id_uucr
-- etablissement_uucr
-- etablissement_id_departement
-- etablissement_departement
-- etablissement_id_academie
-- etablissement_academie
-- etablissement_id_region
-- etablissement_region
-- etablissement_id_paysage_actuel
-- etablissement_actuel_lib
+- etablissement_id_uai_source
+- etablissement_id_paysage
+- etablissement_compos_id_paysage
+- etablissement_localisation
+- form_ens_id_paysage
+- gd_discipline
+- gd_discipline_lib
+- implantation_code_commune
+- implantation_localisation
+- iut_id_paysage
+- lmddontbis
+- niveau
+- niveau_lib
+- operateur_lolf_150
+- rentree
+- sectdis
+- sect_disciplinaire
+- sect_disciplinaire_lib
+- sexe
+- spec_iut_lib
+- spec_iut_rgp_lib
+- speciut
+- typ_dipl
+
+
+# od2_vars_num:
+# - eff_dei
+# - effectif
+# - effectif_sans_cpge
+# - effectif_total
+# - effectif_total_sans_cpge
+# - nouv_bachelier
+# - nouv_bachelier_sans_cpge
+
+# etab_vars_synth:
+# - rentree
+# - etablissement_id_paysage
+# - etablissement_localisation
+# - etablissement_code_commune
+# - etablissement_commune
+# - etablissement_id_uucr
+# - etablissement_uucr
+# - etablissement_id_departement
+# - etablissement_departement
+# - etablissement_id_academie
+# - etablissement_academie
+# - etablissement_id_region
+# - etablissement_region
+
