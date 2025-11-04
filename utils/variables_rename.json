@@ -1,0 +1,13 @@
+{"names_vars_num":
+    {
+    "eff_ss_cpge":"effectif_sans_cpge",                    
+    "efft":"effectif_total",
+    "efft_ss_cpge":"effectif_total_sans_cpge",
+    "nbach":"nouv_bachelier",
+    "nbach_ss_cpge":"nouv_bachelier_sans_cpge",
+    "bologne":"attrac_intern_bologne",
+    "brics":"attrac_intern_brics",
+    "ocde_membres":"attrac_intern_ocde_membres",
+    "ue_27": "attrac_intern_ue_27"
+    }
+}
