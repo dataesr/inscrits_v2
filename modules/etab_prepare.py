@@ -1,65 +1,41 @@
-from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
+# from reference_data.ref_data_utils import CORRECTIFS_dict, BCN, PAYSAGE_dict
 import pandas as pd
+from config_path import PATH
 from utils.functions_shared import work_csv, replace_by_nan
+from modules.cleansing import uai_fixing, uai_patching, uai_invalid_fix, comins_clean, cometa_clean
+from modules.enrichment import from_uai_to_paysage, from_id_to_lib, d_epe_enrich, iut_enrich, ing_enrich
 
 
-def from_uai_to_paysage(etab): 
-    a_uai = pd.DataFrame(CORRECTIFS_dict['A_UAI'])
-    a_uai['rentree'] = a_uai['rentree'].astype(int)
-    tmp = a_uai.loc[a_uai.type=='inscri', ['rentree', 'source', 'etabli', 'id_paysage']].drop_duplicates()
-    tmp['paysage_count'] = (tmp.groupby(['rentree', 'source', 'etabli'], dropna=False)['id_paysage']
-                               .transform('count')
-                            )
-    if len(tmp.query('paysage_count>1'))>0:
-        print(f"- ATTENTION ++ id_paysage for etabli_uai: {tmp.query('paysage_count>1')}")
+################################################################################################
+def etab_update(year):
 
-    etab = etab.merge(tmp, how='left', on=['rentree', 'source', 'etabli'])
+    etab = pd.read_pickle(f"{PATH}output/uai_frequency_source_year{year}.pkl",compression= 'gzip').drop_duplicates()
+    print(f"- first size ETAB: {len(etab)}")
 
-    id_paysage_null = etab.loc[etab.id_paysage.isnull(), ['rentree', 'source', 'etabli', 'lib_etabli', 'etabli_valide']].drop_duplicates()
-    paysage_id = pd.DataFrame(PAYSAGE_dict['paysage_id'])
-    id_paysage_null = id_paysage_null.merge(paysage_id.loc[paysage_id.id_type=='uai'], how='left', left_on='etabli', right_on='id_value')[
-        ['rentree', 'source', 'etabli', 'etabli_valide', 'lib_etabli', 'id_paysage',
-        'usualname', 'active', 'id_startdate', 'id_enddate']]
-    if len(id_paysage_null)>0:
-        print("- ATTENTION, create file uai_paysage_missing_into_A_UAI for updating A_UAI")
-        work_csv(id_paysage_null, 'uai_paysage_missing_into_A_UAI')
+    # UAI wrong -> ETABLI=ETABLI_ORI_UAI & COMPOS=COMPOS_ORI_UAI
+    etab = uai_fixing(etab)
+    for i in ['etabli', 'compos']:
+        etab.loc[etab[f"{i}_new"].isnull(), f"{i}_new"] = etab.loc[etab[f"{i}_new"].isnull(), i]
+        etab = etab.rename(columns={i: f"{i}_ori_uai", f"{i}_new": i})
 
-    return etab.drop(columns='paysage_count')
+    # COMPOS_NEW empty
+    etab = uai_patching(etab, 'compos_empty')
+    print(f"- size ETAB after cleaning COMPOS: {len(etab)}")
 
-def from_id_to_lib(etab):
-    c_etab = pd.DataFrame([{'id_paysage': i['id_paysage'], 'lib_paysage': i['uo_lib_courant']} for i in CORRECTIFS_dict['C_ETABLISSEMENTS']]).drop_duplicates()
-    c_etab['paysage_count'] = c_etab.groupby(['id_paysage'], dropna=False)['lib_paysage'].transform('count')
-    if len(c_etab.query('paysage_count>1'))>0:
-        print(f"- ATTENTION ++ lib_paysage for id_paysage: {c_etab.query('paysage_count>1')}")
-        
-    etab = etab.merge(c_etab, how='left', on='id_paysage')
-    return etab.drop(columns='paysage_count')
+    # RATTACH empty or wrong
+    etab = uai_patching(etab, 'rattach_patch')
+    print(f"- size ETAB after cleaning RATTACH: {len(etab)}")
 
-def d_epe_enrich(etab):
-    epe =  pd.DataFrame(CORRECTIFS_dict['D_EPE']).assign(rentree=lambda x: x['rentree'].astype(int))
-    etab = (etab.merge(epe[['rentree', 'id_paysage', 'id_paysage_epe']], on=['rentree', 'id_paysage'], how='left')
-                .drop_duplicates())
-    return etab
+    # ETABLI wrong
+    etab = uai_patching(etab, 'etabli_patch')
+    print(f"- size ETAB after cleaning ETABLI: {len(etab)}")
 
-def iut_enrich(etab):
-    iut =  (pd.DataFrame(CORRECTIFS_dict['M_IUT'])
-            .assign(rentree=lambda x: x['rentree'].astype(int))
-            .rename(columns={'ur':'rattach', 'ui':'compos'}))
-    etab = (etab.merge(iut[['rentree', 'rattach', 'compos', 'id_paysage_iut', 'id_paysage_iut_campus', 'id_paysage_iut_pole']],
-                how='left', on=['rentree', 'rattach', 'compos'])
-                .drop_duplicates())
-    return etab
+    # check uai validity
+    etab = uai_invalid_fix(etab)
+    print(f"- size ETAB after uai_invalid: {len(etab)}")
 
-def ing_enrich(etab):
-    ing =  (pd.DataFrame(CORRECTIFS_dict['N_ING'])
-            .assign(rentree=lambda x: x['rentree'].astype(int))
-            .rename(columns={'ur':'rattach', 'ui':'compos'}))
-    etab = (etab.merge(ing[['rentree', 'rattach', 'compos', 'id_paysage_ing', 'id_paysage_ing_campus']],
-                how='left', on=['rentree', 'rattach', 'compos'])
-                .drop_duplicates())
-    return etab
 
-def enrich_paysage(etab):
+    # etab enrich stage
     print(f"- size ETAB before paysage: {len(etab)}")
     etab = from_uai_to_paysage(etab)
     print(f"- size ETAB after id_paysage: {len(etab)}")
@@ -67,11 +43,35 @@ def enrich_paysage(etab):
     print(f"- size ETAB after lib_paysage: {len(etab)}")
     etab = d_epe_enrich(etab)
     print(f"- size ETAB after enrich_d_epe: {len(etab)}")
+
     etab = iut_enrich(etab)
     print(f"- size ETAB after enrich_d_epe: {len(etab)}")
     etab = ing_enrich(etab)
     print(f"- size ETAB after enrich_d_epe: {len(etab)}")
 
+
+    # communes code clean
+    etab = cometa_clean(etab)
+    print(f"- size ETAB after cometa_clean: {len(etab)}")
+    etab = comins_clean(etab)
+    print(f"- size ETAB after comins_clean: {len(etab)}")
+
+
+
     for i in ['id_paysage_epe', 'id_paysage_iut', 'id_paysage_iut_campus', 'id_paysage_iut_pole', 'id_paysage_ing', 'id_paysage_ing_campus']:
-        etab[i] = replace_by_nan(etab[i]) 
+        etab[i] = replace_by_nan(etab[i])
+
+
+    verif_multi_com = (etab
+                       .loc[~((etab.source.isin(['mana', 'culture', 'enq26bis']))&(etab.id_paysage.isnull()))]
+                       .groupby(['rentree', 'etabli_ori_uai', 'etabli', 'compos_ori_uai', 'compos', 'id_paysage_source', 'id_paysage'], dropna=False )
+                       .filter(lambda g: g['cometa'].nunique() > 1 or g['comui'].nunique() > 1)
+                       .reset_index()[
+                        ['rentree', 'etabli_ori_uai', 'etabli', 'id_paysage', 'lib_paysage', 'compos_ori_uai', 'compos', 'cometa','comui']]
+    )
+
+    if len(verif_multi_com)>0:
+        work_csv(verif_multi_com, 'verif_etab')
+        print("- ATTENTION ! ++ com for the same etabli -> verif_etab.csv")
+
     return etab
