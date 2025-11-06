@@ -5,13 +5,23 @@ warnings.simplefilter("ignore")
 last_data_year = last_year_into_zip(f"{PATH}output/", 'sise_parquet')
 ALL_RENTREES = list(range(2004, int(last_data_year)+1))
 
+
+######################################################################
+# PARAMETRES A MODIFIER SELON LES BESOINS
+##########################################
+
 INITIALISATION = False
 CLEANING = True
 DEBUG = False
 OUTPUT = True
+ODC_EXIST = False
 
+
+#######################################################################
+
+# Première étape : initialisation des fichiers de référence et lecture des données SISE
 if INITIALISATION == True:
-    # read sise file, select vars, create of excel files to check data, save concatenate data into parquet file per year
+   
     sise_read(PATH)
     last_data_year = last_year_into_zip(f"{PATH}output/", 'sise_parquet')
 
@@ -21,12 +31,10 @@ if INITIALISATION == True:
     update_ref_data('bcn.pkl')
     get_paysageODS()
     update_ref_data('paysage.json')
-    
+
+
+# Deuxième étape : nettoyage des données SISE
 if CLEANING == True:
-
-    ### si besoin d'ajouter ou corriger RATTACH uai à la marge
-    # rattach_single_add('0292136P', '0292078B', range(2004, 2025))
-
 
     etab = etab_update(last_data_year)
     meef = etabli_meef(last_data_year)
@@ -68,18 +76,26 @@ if CLEANING == True:
             bac_to_check(last_data_year, df_bac)
 
 
+# Troisième étape : création des fichiers OpenData à partir des données SISE nettoyées
 if OUTPUT == True:
     zipin_path = os.path.join(PATH, f"output/sise_cleaned_{last_data_year}.zip")
-    od_complete = pd.DataFrame()
-    # verif = pd.DataFrame()
-
-    for rentree in ALL_RENTREES:
-        df = get_individual_source(zipin_path, 'sise', rentree)
-        # verif = pd.concat([verif, df[['lmddontbis', 'typ_dipl', 'efft']]])
-        od_first = opendata_first(df)
-        od_complete = pd.concat([od_complete, od_first], ignore_index=True)
     
-    od_complete = od_first_enrich(od_complete)
+    if ODC_EXIST == True:
+        # Charge le fichier pickle si code de création déjà exécuté
+        od_complete = pd.read_pickle(f"{PATH}opendata/od_complete.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
+        od_complete = od_complete.loc[od_complete['rentree'] >= 2006]
+    else:
+        od_complete = pd.DataFrame()
+        # verif = pd.DataFrame()
+        for rentree in ALL_RENTREES:
+            df = get_individual_source(zipin_path, 'sise', rentree)
+            # verif = pd.concat([verif, df[['lmddontbis', 'typ_dipl', 'efft']]])
+            od_first = opendata_first(df)
+            od_complete = pd.concat([od_complete, od_first], ignore_index=True)
+        od_complete = od_first_enrich(od_complete)
+        od_complete = od_complete.loc[od_complete['rentree'] >= 2006]
+
+    
     od_tableau(od_complete)
     od, od2p = od_create_files(od_complete)
     od_synthese_by_etab(od)
