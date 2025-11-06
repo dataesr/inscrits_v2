@@ -12,9 +12,13 @@ def od_create_files(df):
 
     od = df.groupby(va, dropna=False)[vn].sum().reset_index()
 
+    odod = od.loc[(od.rentree >= 2017)&(od.operateur_lolf_150=='O')].drop(columns='operateur_lolf_150')
+    if len(odod)>3000000:
+        print(f"WARNING: odod exceed records limit:\n {od.rentree.value_counts()}")
+
     # sas opendata19 lignes 275 (data txt) -> odod.txt
-    (rename_variables(od, 'names_vars_num')
-     .loc[(od.rentree > 2014)&(od.operateur_lolf_150=='O')].to_csv(f"{PATH}opendata/odod.txt", na_rep='', encoding='utf-8', index=False, sep='\t')
+    (rename_variables(odod, 'names_vars_num')
+     .to_csv(f"{PATH}opendata/odod.txt", na_rep='', encoding='utf-8', index=False, sep='\t')
     )
     ###########################
     # sas opendata19 lignes 289 -> 319
