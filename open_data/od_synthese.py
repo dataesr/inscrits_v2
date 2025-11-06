@@ -20,11 +20,10 @@ def cross_vars_effect(df, k, v):
 
 def od_synthese_by_etab(df):
   
-    etab = pd.DataFrame(CORRECTIFS_dict['C_ETABLISSEMENTS'])[['id_paysage', 'operateur_lolf_150']]
-	
+    print("### OD synthe ETAB ###")
     vn = cols_selected['od_vars_num_init']
 
-    mask_op = df['etablissement_id_paysage'].isin(etab.loc[etab['operateur_lolf_150']=='O', 'id_paysage'].unique())
+    mask_op = (df['operateur_lolf_150']=='O')
     mask_id = (~df['etablissement_compos_id_paysage'].isnull())&(df['etablissement_id_paysage'] != df['etablissement_compos_id_paysage'])
     
     d0 = (df.loc[mask_op]
@@ -86,6 +85,7 @@ def od_synthese_by_etab(df):
 
 
 def od_synthese_by_inspe(df):
+    print("### OD synthe INSPE ###")
 
     df['form_ens_id_paysage'] = replace_by_nan(df['form_ens_id_paysage'])
     mask_inspe = (~df.form_ens_id_paysage.isnull())
@@ -112,31 +112,40 @@ def od_synthese_by_inspe(df):
 
 
 def od_synthese_for_paysage(df):
+    print("### OD synthe PAYSAGE ###")
 
     vn = cols_selected['od_vars_num_init']
 
     dd = pd.DataFrame()
 
     mapping={
-        'etablissement_compos_id_paysage': 
-            {'epe_id_paysage':'* Attention : doubles comptes, établissement-composante'},
-        'form_ens_id_paysage': 
-            {'inspe_id_paysage':'* Attention : doubles comptes, ESPE-INSPE'},
-        'id_paysage_ed': 
-            {'ed_id_paysage':'* Attention : doubles comptes ED'},
-        'id_paysage_ing': 
-            {'ing_id_paysage':'* Attention : doubles comptes ING'},
-        'id_paysage_ing_campus': 
-            {'ing_id_paysage':'* Attention : doubles comptes Campus ING'},
-        'id_paysage_iut': 
-            {'iut_id_paysage':'* Attention : doubles comptes IUT'},
-        'id_paysage_iut_campus': 
-            {'iut_id_paysage':'* Attention : doubles comptes Campus IUT'},
-        'id_paysage_iut_pole': 
-            {'iut_id_paysage': '* Attention : doubles comptes Pôle IUT'},
-        'iut_id_paysage': 
-            {'iut_id_paysage':'* Attention : doubles comptes DUT'}
+        'etablissement_compos_id_paysage': {'epe_id_paysage':'établissement-composante'},
+        'form_ens_id_paysage': {'inspe_id_paysage':'ESPE-INSPE'},
+        'id_paysage_ed': {'ed_id_paysage':'ED'},
+        'id_paysage_ing': {'ing_id_paysage':'ING'},
+        'id_paysage_ing_campus': {'ing_id_paysage':'Campus ING'},
+        'id_paysage_iut': {'iut_id_paysage':'IUT'},
+        'id_paysage_iut_campus': {'iut_id_paysage':'Campus IUT'},
+        'id_paysage_iut_pole': {'iut_id_paysage': 'Pôle IUT'},
+        'iut_id_paysage': {'iut_id_paysage':'DUT'}
         }
+
+    vars_dict = {'sexe':'eff_ss_cpge', 
+                    'bac':['eff_ss_cpge', 'nbach'], 
+                    'bac_age':['eff_ss_cpge', 'nbach'], 
+                    'attrac_nat_dep_bac':'eff_ss_cpge',
+                    'attrac_intern':'eff_ss_cpge',
+                    'dn_de':'eff_ss_cpge',
+                    'diplome':'eff_ss_cpge',
+                    'cursus_lmd':'eff_ss_cpge',
+                    'gd_discipline':'eff_ss_cpge', 
+                    'discipline':'eff_ss_cpge',
+                    'mobilite_intern':'eff_ss_cpge',
+                    'correspondance_iut':'eff_ss_cpge',
+                    'degetu':'eff_ss_cpge'
+                    } 
+    vlist = [(dim, eff) for dim, vs in vars_dict.items() for eff in (vs if isinstance(vs, list) else [vs])]
+
 
     for kid, did in mapping.items():
         for newid, att in did.items():
@@ -153,39 +162,25 @@ def od_synthese_for_paysage(df):
                 mask_id = mask_id & (df[kid]!=df['id_paysage_iut']) & (df['id_paysage_iut_pole']!=df['id_paysage_iut_campus']) 
 
             d02 = (df.loc[mask_id]
-                .groupby(['rentree', 'annee_universitaire', 'annee', 'etablissement_id_paysage', kid], dropna=False)[vn].sum()
+                .groupby(['rentree', 'annee_universitaire', 'annee', kid], dropna=False)[vn].sum()
                 .reset_index()
             )
-            
-            vars_dict = {'sexe':'effectif', 
-                         'bac':['effectif', 'nbach'], 
-                         'bac_age':['effectif', 'nbach'], 
-                         'attrac_nat_dep_bac':'effectif',
-                         'attrac_intern':'effectif',
-                         'dn_de':'effectif',
-                         'diplome':'effectif',
-                         'cursus_lmd':'effectif',
-                         'gd_discipline':'effectif', 
-                         'discipline':'effectif',
-                         'mobilite_intern':'effectif',
-                         'correspondance_iut':'effectif',
-                         'degetu':'effectif'
-                         } 
-            vlist = [(dim, eff) for dim, vs in vars_dict.items() for eff in (vs if isinstance(vs, list) else [vs])]
 
             for dim, eff in vlist:
                 tmp = df.loc[mask_id, ['rentree', kid, dim, eff]]
                 dt = cross_vars_effect(tmp, dim, eff)
-                if eff == 'nouv_bachelier':
+                if eff == 'nbach':
                     dt = dt.rename(columns=lambda x: 'n' + x if x.startswith('bac') else x)
                 d02 = pd.merge(d02, dt, how='left', on=['rentree', kid])
 
+            d02[newid] = d02[kid]
+            d02['etablissement_id_paysage'] = d02[kid]
             d02 = (d02
-                    .rename(columns={'etablissement_id_paysage':newid, kid:'etablissement_id_paysage'})
-                    .assign(Attention = att)
+                    .drop(columns=kid)
+                    .assign(Attention = f"* Attention : doubles comptes {att}")
             )
 
-            dd = pd.concat([dd, d02], ignore_index=True)
+            dd = pd.concat([dd, d02], axis=0, ignore_index=True)
 
     # aggregation on global id_paysage
     d0 = (df
@@ -199,7 +194,7 @@ def od_synthese_for_paysage(df):
             dt = dt.rename(columns=lambda x: 'n' + x if x.startswith('bac') else x)
         d0 = pd.merge(d0, dt, how='left', on=['rentree', 'etablissement_id_paysage'])
     
-    dd = pd.concat([d0, dd], ignore_index=True)
+    dd = pd.concat([d0, dd], axis=0, ignore_index=True)
     dd = rename_variables(dd, 'names_vars_num')
 
     path_export= f'{PATH}opendata/synthpaysage.txt'.encode('utf-8').decode('utf-8')
@@ -207,11 +202,14 @@ def od_synthese_for_paysage(df):
 
 
 def od_synthese_by_diplom(df):
+    print("### OD synthe DIPLOM ###")
 
     va = cols_selected['od_vars_diplom']
     vn = list(set(cols_selected['od_vars_num_init']) - {'nbach', 'nbach_ss_cpge'})
 
-    d0 = df.groupby(va, dropna=False)[vn].sum().reset_index()
+    d0 = (df.loc[df['operateur_lolf_150']=='O']
+          .groupby(va, dropna=False)[vn].sum()
+          .reset_index())
 
     sex_dict = {'M':'hommes', 'F':'femmes'}
     for k, v in sex_dict.items():    
@@ -249,7 +247,7 @@ def od_synthese_by_diplom(df):
 
     for i in ['diplom', 'typ_dipl', 'niveau', 'degetu']:
         d01 = d0.groupby([i], dropna=False)['effectif'].sum().reset_index()
-        with pd.ExcelWriter(f"{PATH}work/diplom_check.xlsx", mode='w') as writer:  
+        with pd.ExcelWriter(f"{PATH}work/diplom_check.xlsx", mode='a', if_sheet_exists='replace') as writer:  
             d01.to_excel(writer, sheet_name=i, index=False)
         
     path_export= f'{PATH}opendata/diplomes.txt'.encode('utf-8').decode('utf-8')
