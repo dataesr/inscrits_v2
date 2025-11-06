@@ -104,4 +104,6 @@ def od_first_enrich(df):
 
         rkey=ref.lower()
         df = pd.merge(df, s, how='left', on=rkey)
+
+        df.to_pickle(f"{PATH}opendata/od_complete.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
     return df
