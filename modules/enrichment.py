@@ -96,13 +96,16 @@ def niveau_retard_avance(df):
     df.loc[mask_bac_rgp & ~mask_age_avance, 'avance']='N'
 
     if back < 2012:
-        df.loc[(df.bac_rgrp=='6') & (df.age_bac>19), 'retard']='O'
-        df.loc[(df.bac_rgrp=='6') & (df.age_bac<20), 'retard']='N'
-        df.loc[(df.bac_rgrp=='6') & (df.age_bac<21), 'avance']='O'
-        df.loc[(df.bac_rgrp=='6') & (df.age_bac>20), 'avance']='N'
+        mask_bac_rgp = (df.bac_rgrp=='6')
+        mask_age_retard = (df.age_bac>19)
+        mask_age_avance = (df.age_bac<19)
+        df.loc[mask_bac_rgp & mask_age_retard, 'retard']='O'
+        df.loc[mask_bac_rgp & ~mask_age_retard, 'retard']='N'
+        df.loc[mask_bac_rgp & mask_age_avance, 'avance']='O'
+        df.loc[mask_bac_rgp & ~mask_age_avance, 'avance']='N'
 
-    df.loc[(df.anbac==-1) | (df.age_bac<10), 'retard']="X"
-    df.loc[(df.anbac==-1) | (df.age_bac<10), 'avance']="X"
+    df.loc[(df.anbac==-1) | (df.age_bac<10) | (df.bac_rgrp=='7'), 'retard']="X"
+    df.loc[(df.anbac==-1) | (df.age_bac<10) | (df.bac_rgrp=='7'), 'avance']="X"
 
     return df
 
