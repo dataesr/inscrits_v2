@@ -35,7 +35,7 @@ def etab_update(year):
     print(f"- size ETAB after uai_invalid: {len(etab)}")
 
     # remove duplicates esiee & ens 2023
-    mask = [(etab['source']=='ing') & (etab['etabli_ori_uai']=='0932019P'), 
+    mask = [(etab['source']=='inge') & (etab['etabli_ori_uai']=='0932019P'), 
             (etab['source']=='ens') & (etab['etabli_ori_uai']=='0753455Y')]
     for m in mask:
         etab = etab.loc[~((etab['rentree']==2023) &  m)]
