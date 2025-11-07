@@ -12,12 +12,12 @@ def data_result(df, etab, meef):
     df = df.rename(columns={'etabli':'etabli_ori_uai', 'compos':'compos_ori_uai', 'cometa':'cometa_orig'})
 
     et = etab.loc[~((etab.source.isin(['mana', 'culture', 'enq26bis']))&(etab.id_paysage.isnull())),
-        ['rentree', 'etabli_ori_uai', 'etabli', 'compos_ori_uai', 'compos', 'rattach', 
+        ['rentree', 'source', 'etabli_ori_uai', 'etabli', 'compos_ori_uai', 'compos', 'rattach', 
         'id_paysage_source', 'id_paysage', 'id_paysage_epe', 'id_paysage_iut', 'id_paysage_iut_campus',
         'id_paysage_iut_pole', 'id_paysage_ing', 'id_paysage_ing_campus', 'id_paysage_epe_etab_compos',
         'cometa', 'comui']].drop_duplicates()
 
-    df = (df.merge(et, how='inner', on=['rentree', 'etabli_ori_uai', 'compos_ori_uai'])
+    df = (df.merge(et, how='inner', on=['rentree', 'source', 'etabli_ori_uai', 'compos_ori_uai'])
             .rename(columns={'compos':'ui', 'rattach':'ur'})
         )
     df = df.loc[:, ~df.columns.str.contains('compos_ori_uai')]
