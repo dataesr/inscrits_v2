@@ -3,6 +3,7 @@ from utils.functions_shared import *
 
 def od_create_files(df):
 
+    print("### OD")
     # sas opendata19 lignes 235 -> 279
     va=cols_selected['od_vars_odod']
     vn=cols_selected['od_vars_num']
@@ -21,6 +22,8 @@ def od_create_files(df):
      .to_csv(f"{PATH}opendata/odod.txt", na_rep='', encoding='utf-8', index=False, sep='\t')
     )
     ###########################
+    print("### OD2P")
+
     # sas opendata19 lignes 289 -> 319
     # data for the next OD script
     va=cols_selected['od2_vars']

@@ -30,6 +30,8 @@ def tableau_adjust(df, va, vn):
     return df
 
 def od_tableau(df):
+    print("### OD tableau")
+
     # sas opendata19 lignes 414
     va = cols_selected['tableau_vars_short']
     vn = list(set(cols_selected['od_vars_num']) - {'efft', 'efft_ss_cpge'})
@@ -49,7 +51,7 @@ def od_tableau(df):
     tableau1.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
     # tableau1.to_pickle(path_export, compression='gzip')
 
-
+    print("## OD UO")
     uo = tableau.etablissement_id_paysage.value_counts().reset_index(name='freq')
     uo = (pd.merge(uo, 
                 pd.DataFrame(CORRECTIFS_dict['C_ETABLISSEMENTS'])[
