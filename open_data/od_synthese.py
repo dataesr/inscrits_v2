@@ -207,8 +207,7 @@ def od_synthese_by_diplom(df):
     va = cols_selected['od_vars_diplom']
     vn = list(set(cols_selected['od_vars_num_init']) - {'nbach', 'nbach_ss_cpge'})
 
-    d0 = (df.loc[df['operateur_lolf_150']=='O']
-          .groupby(va, dropna=False)[vn].sum()
+    d0 = (df.groupby(va, dropna=False)[vn].sum()
           .reset_index())
 
     sex_dict = {'M':'hommes', 'F':'femmes'}
@@ -249,6 +248,13 @@ def od_synthese_by_diplom(df):
         d01 = d0.groupby([i], dropna=False)['effectif'].sum().reset_index()
         with pd.ExcelWriter(f"{PATH}work/diplom_check.xlsx", mode='a', if_sheet_exists='replace') as writer:  
             d01.to_excel(writer, sheet_name=i, index=False)
-        
-    path_export= f'{PATH}opendata/diplomes.txt'.encode('utf-8').decode('utf-8')
-    d0.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
+
+    d0 = d0.fillna('')
+
+    for i in ['diplomes', 'diplomes_fresq']:
+        if i=='diplomes':
+            mask=(d0['operateur_lolf_150']=='O')
+        else:
+            mask=(d0['etablissement_id_paysage']!='')
+        path_export = f'{PATH}opendata/{i}.txt'.encode('utf-8').decode('utf-8')
+        d0.loc[mask].to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
