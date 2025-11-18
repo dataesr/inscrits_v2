@@ -11,10 +11,10 @@ ALL_RENTREES = list(range(2004, int(last_data_year)+1))
 ##########################################
 
 INITIALISATION = False
-CLEANING = True
+CLEANING = False
 DEBUG = False
 OUTPUT = True
-ODC_EXIST = False
+ODC_EXIST = True
 
 
 #######################################################################
