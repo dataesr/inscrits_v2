@@ -9,5 +9,19 @@
     "brics":"attrac_intern_brics",
     "ocde_membres":"attrac_intern_ocde_membres",
     "ue_27": "attrac_intern_ue_27"
+    },
+
+"names_vars_tableau":
+{
+    "etablissement_id_paysage":"etabli",
+    "implantation_id_departement":"depins",
+    "bac":"bac_rgrp",
+    "attrac_intern":"nation_vrai",
+    "sect_disciplinaire":"sectdis",
+    "discipline":"discipli",
+    "gd_discipline":"gddisc",
+    "eff_dei":"effectif_dei",
+    "eff_ss_cpge":"effectif_sans_cpge",
+    "nbach_ss_cpge":"nbach_sans_cpge"
     }
 }
