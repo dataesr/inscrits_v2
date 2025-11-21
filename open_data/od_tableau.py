@@ -15,18 +15,11 @@ def tableau_adjust(df, va, vn):
     df = (df.groupby(va, dropna=False)[vn]
            .sum()
            .reset_index())
-    
-    df = (df.rename(columns={
-            "etablissement_id_paysage":"etabli",
-            "implantation_id_departement":"depins",
-            "bac":"bac_rgrp",
-            "attrac_intern":"nation_vrai",
-            "sect_disciplinaire":"sectdis",
-            "discipline":"discipli",
-            "gd_discipline":"gddisc",
-            "eff_dei":"effectif_dei"
-            })
-        )
+    return df
+
+def vars_format(df):
+    df = rename_variables(df, 'names_vars_tableau')
+    df.columns = [col.upper() for col in df.columns]
     return df
 
 def od_tableau(df):
@@ -39,6 +32,9 @@ def od_tableau(df):
 
     # tableau 2
     tableau2 = tableau_adjust(tableau, va, vn)
+    tableau2 = vars_format(tableau2)
+    tableau2 = tableau2.assign(TYPETAB='')
+    tableau2 = tableau2[cols_selected['vars_sort']]
     path_export= f'{PATH}opendata/tableau2.txt'
     tableau2.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
     # tableau2.to_pickle(path_export, compression='gzip')
@@ -47,6 +43,10 @@ def od_tableau(df):
     # sas opendata lignes 321 -> 411
     va = [item for item in va if item not in {'optiut', 'parcoursbut'}]
     tableau1 = tableau_adjust(tableau, va, vn)
+    tableau1 = vars_format(tableau1)
+    vs = [item for item in cols_selected['vars_sort'] if item not in {'OPTIUT', 'PARCOURSBUT'}]
+    tableau1 = tableau1.assign(TYPETAB='')
+    tableau1 = tableau1[vs]
     path_export= f'{PATH}opendata/tableau.txt'
     tableau1.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
     # tableau1.to_pickle(path_export, compression='gzip')
@@ -71,14 +71,15 @@ def od_tableau(df):
                             "reg_nom":"uo_reg_nom"})    
             )
 
-    uo[["long", "lat"]] = uo["coordonnees"].str.split(",", expand=True)
+    uo[["lat", "long"]] = uo["coordonnees"].str.split(",", expand=True)
     uo = (uo.assign(rers2015='oui',
                    uo_siege=np.where(uo.ui_siege_id=='UU00851', uo.com_nom, uo.uo_siege),
                    ui_siege_id=np.where(uo.ui_siege_id=='UU00851', uo.com_code, uo.ui_siege_id)
                    )
             .drop(columns=['com_code', 'com_nom', 'id_paysage', 'coordonnees'])
             )
- 
+    uo.columns = [col.upper() for col in uo.columns]
+
     path_export= f'{PATH}opendata/uo.txt'.encode('utf-8').decode('utf-8')
     uo.to_csv(path_export, encoding='utf-8', na_rep='', sep='\t', index=False)
     # uo.to_pickle(path_export, compression='gzip')
