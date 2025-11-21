@@ -22,7 +22,7 @@ def get_all_correctifs_from_google():
                     c[f] = ''
                 if 'annee' in f.lower() or 'rentree' in f.lower():
                     c[f] = str(c[f])
-                if isinstance(c[f], str):
+                if isinstance(c[f], str) and f.lower() != 'coordonnees':
                     c[f] = c[f].split('.0')[0].strip()
                 elif isinstance(c[f], float) or isinstance(c[f], int):
                     c[f] = str(c[f]).split('.0')[0].strip()
