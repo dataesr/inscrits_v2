@@ -12,6 +12,7 @@ def od_create_files(df):
         df[i] = replace_by_nan(df[i])
 
     od = df.groupby(va, dropna=False)[vn].sum().reset_index()
+    od.to_pickle(f"{PATH}opendata/od.pkl",compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1})
 
     odod = od.loc[(od.rentree >= 2017)&(od.operateur_lolf_150=='O')].drop(columns='operateur_lolf_150')
     if len(odod)>3000000:
