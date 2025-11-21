@@ -88,7 +88,7 @@ def od_synthese_by_inspe(df):
     print("### OD synthe INSPE ###")
 
     df['form_ens_id_paysage'] = replace_by_nan(df['form_ens_id_paysage'])
-    mask_inspe = (~df.form_ens_id_paysage.isnull())
+    mask_inspe = ((~df.form_ens_id_paysage.isnull())&(df['operateur_lolf_150']=='O'))
 
     vn = list(set(cols_selected['od_vars_num_init']) - {'nbach', 'nbach_ss_cpge', 'eff_dei'})
     d0 = (df.loc[mask_inspe]
@@ -97,7 +97,7 @@ def od_synthese_by_inspe(df):
     )
 
     vars_list = ['sexe', 'bac', 'bac_age', 'attrac_nat_dep_bac', 'attrac_intern', 'gd_discipline', 'discipline', 'mobilite_intern', 'degetu']
-    vlist = [(var, 'effectif') for var in vars_list]
+    vlist = [(var, 'eff_ss_cpge') for var in vars_list]
 
     for dim, eff in vlist:
         tmp = df.loc[mask_inspe, ['rentree', 'form_ens_id_paysage', dim, eff]].sort_values(['rentree', 'form_ens_id_paysage'])
