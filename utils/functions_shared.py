@@ -131,12 +131,17 @@ def no_same_size(df_size_ori, df):
         raise  # Relance l'exception pour arrêter le script
 
 
-def yaml_file(df_cols, list_name: str):
+def yaml_file(df_cols, list_name: str, sort=True):
     import yaml
+
     if type(df_cols) is list:
-        cols_name = sorted(df_cols)
+        cols_name = df_cols
     else:
-        cols_name = sorted(df_cols.tolist())
+        cols_name = df_cols.tolist()
+
+    if sort==True:
+        cols_name = sorted(cols_name)
+
     with open("utils/variables_selection.yaml", "a") as file:
         yaml.dump({list_name: cols_name}, file, default_flow_style=False)
 
